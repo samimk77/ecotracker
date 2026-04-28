@@ -1,0 +1,768 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;600;700;800&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#0a0f1a;--bg2:#0d1420;--bg3:#111827;--surface:#131d2e;--surface2:#1a2540;
+  --border:rgba(0,255,128,0.12);--border2:rgba(0,255,128,0.22);
+  --green:#00ff80;--green2:#00cc66;--green-dim:rgba(0,255,128,0.07);--green-glow:rgba(0,255,128,0.15);
+  --cyan:#00e5ff;--purple:#7c3aed;--red:#ff4444;--orange:#ff8c00;--yellow:#ffd700;
+  --text:#e0ffe8;--text2:#8ba89e;--text3:#4a6858;
+  --mono:'JetBrains Mono',monospace;--sans:'Syne',sans-serif;
+}
+.app{display:flex;height:100vh;min-height:700px;background:var(--bg);font-family:var(--sans);overflow:hidden;}
+
+/* SIDEBAR */
+.sidebar{width:220px;min-width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:relative;overflow:hidden;}
+.sidebar::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--green),var(--cyan),var(--green));}
+.logo{padding:22px 20px 18px;font-size:22px;font-weight:800;color:var(--green);letter-spacing:-0.5px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+.logo span{color:var(--text);}
+.nav-section{padding:16px 12px 6px;}
+.nav-label{font-size:9px;font-weight:700;letter-spacing:2px;color:var(--text3);padding:0 8px 8px;text-transform:uppercase;font-family:var(--mono);}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text2);transition:all 0.18s;margin-bottom:2px;position:relative;letter-spacing:0.3px;}
+.nav-item:hover{background:var(--green-dim);color:var(--text);}
+.nav-item.active{background:rgba(0,255,128,0.1);color:var(--green);border:1px solid rgba(0,255,128,0.18);}
+.nav-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:20px;background:var(--green);border-radius:0 2px 2px 0;}
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:10px;font-family:var(--mono);}
+.sidebar-bottom{margin-top:auto;padding:16px 12px;border-top:1px solid var(--border);}
+.user-card{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);cursor:pointer;}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--bg);flex-shrink:0;}
+.user-name{font-size:12px;font-weight:700;color:var(--text);}
+.user-loc{font-size:10px;color:var(--text3);font-family:var(--mono);}
+
+/* MAIN */
+.main{flex:1;overflow-y:auto;background:var(--bg);display:flex;flex-direction:column;}
+.main::-webkit-scrollbar{width:4px;}
+.main::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+
+/* TOPBAR */
+.topbar{padding:18px 28px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:var(--bg2);position:sticky;top:0;z-index:10;}
+.page-title{font-size:18px;font-weight:800;color:var(--text);letter-spacing:-0.5px;}
+.page-sub{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:2px;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.btn-create{background:var(--green);color:var(--bg);font-size:12px;font-weight:800;padding:8px 16px;border-radius:7px;cursor:pointer;border:none;font-family:var(--sans);letter-spacing:0.3px;transition:opacity 0.15s;}
+.btn-create:hover{opacity:0.85;}
+.btn-outline{background:transparent;color:var(--text2);font-size:11px;font-weight:600;padding:7px 13px;border-radius:7px;cursor:pointer;border:1px solid var(--border2);font-family:var(--mono);transition:all 0.15s;}
+.btn-outline:hover{background:var(--green-dim);color:var(--text);}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;margin-right:6px;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+.online-badge{font-size:11px;color:var(--green);font-family:var(--mono);font-weight:600;display:flex;align-items:center;}
+
+/* HERO BANNER */
+.hero{margin:22px 28px 0;background:linear-gradient(135deg,#0d1e14 0%,#0a1520 60%,#0f0d1e 100%);border:1px solid var(--border2);border-radius:12px;padding:24px 28px;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;top:-40px;right:-40px;width:180px;height:180px;border-radius:50%;background:rgba(0,255,128,0.04);border:1px solid rgba(0,255,128,0.08);}
+.hero-title{font-size:26px;font-weight:800;color:var(--text);letter-spacing:-1px;line-height:1.2;margin-bottom:6px;}
+.hero-title em{color:var(--green);font-style:normal;}
+.hero-sub{font-size:12px;color:var(--text3);margin-bottom:16px;line-height:1.6;max-width:480px;}
+.hero-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.hero-note{margin-top:12px;font-size:10px;color:var(--text3);font-family:var(--mono);display:flex;align-items:center;gap:6px;}
+.hero-note span{color:var(--green);font-weight:700;}
+.hero-stats{position:absolute;top:20px;right:24px;display:flex;gap:18px;}
+.hstat{text-align:right;}
+.hstat-num{font-size:24px;font-weight:800;font-family:var(--mono);}
+.hstat-num.c1{color:var(--cyan);}
+.hstat-num.c2{color:var(--purple);}
+.hstat-num.c3{color:var(--orange);}
+.hstat-label{font-size:8px;color:var(--text3);font-family:var(--mono);letter-spacing:1.5px;text-transform:uppercase;}
+
+/* TABS */
+.tabs{display:flex;align-items:center;gap:0;padding:0 28px;border-bottom:1px solid var(--border);background:var(--bg2);margin-top:0;}
+.tab{padding:12px 18px;font-size:12px;font-weight:700;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s;font-family:var(--mono);letter-spacing:0.5px;display:flex;align-items:center;gap:6px;}
+.tab:hover{color:var(--text2);}
+.tab.active{color:var(--green);border-bottom-color:var(--green);}
+.tab-count{background:var(--surface2);color:var(--text2);font-size:9px;padding:1px 5px;border-radius:4px;}
+.tab.active .tab-count{background:rgba(0,255,128,0.12);color:var(--green);}
+
+/* CONTENT */
+.content{padding:20px 28px;flex:1;}
+
+/* FILTERS */
+.filter-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap;}
+.search-box{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:8px 14px;font-size:11px;color:var(--text2);font-family:var(--mono);flex:1;min-width:180px;outline:none;transition:border-color 0.15s;}
+.search-box:focus{border-color:var(--border2);}
+.filter-chip{background:var(--surface);border:1px solid var(--border);color:var(--text3);font-size:10px;font-weight:700;padding:5px 11px;border-radius:5px;cursor:pointer;font-family:var(--mono);letter-spacing:0.5px;transition:all 0.15s;}
+.filter-chip:hover,.filter-chip.active{background:rgba(0,255,128,0.1);color:var(--green);border-color:rgba(0,255,128,0.25);}
+
+/* EVENTS GRID */
+.events-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+
+/* EVENT CARD */
+.event-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;transition:all 0.18s;}
+.event-card:hover{border-color:var(--border2);background:var(--surface2);}
+.card-top{padding:14px 16px 10px;border-bottom:1px solid var(--border);}
+.card-tags{display:flex;align-items:center;gap:6px;margin-bottom:8px;}
+.cat-tag{font-size:9px;font-weight:800;padding:3px 8px;border-radius:4px;letter-spacing:1px;font-family:var(--mono);}
+.cat-cleanup{background:rgba(0,229,255,0.1);color:var(--cyan);border:1px solid rgba(0,229,255,0.2);}
+.cat-townhall{background:rgba(124,58,237,0.15);color:#a78bfa;border:1px solid rgba(124,58,237,0.25);}
+.cat-plantation{background:rgba(0,255,128,0.1);color:var(--green);border:1px solid rgba(0,255,128,0.2);}
+.cat-awareness{background:rgba(255,140,0,0.12);color:var(--orange);border:1px solid rgba(255,140,0,0.22);}
+.cat-drive{background:rgba(255,68,68,0.1);color:var(--red);border:1px solid rgba(255,68,68,0.2);}
+.cat-inspection{background:rgba(255,215,0,0.1);color:var(--yellow);border:1px solid rgba(255,215,0,0.2);}
+.ward-dot{width:6px;height:6px;border-radius:50%;background:var(--text3);margin-left:auto;}
+.card-title{font-size:13px;font-weight:700;color:var(--text);line-height:1.35;margin-bottom:4px;}
+.card-desc{font-size:10px;color:var(--text3);line-height:1.5;margin-bottom:10px;}
+.card-meta{display:flex;flex-wrap:wrap;gap:8px;}
+.meta-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3);font-family:var(--mono);}
+.meta-icon{font-size:10px;}
+.xp-pill{background:rgba(0,255,128,0.1);color:var(--green);font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;font-family:var(--mono);border:1px solid rgba(0,255,128,0.2);}
+.card-bottom{padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.reg-info{flex:1;}
+.reg-bar-wrap{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+.reg-track{flex:1;height:3px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;}
+.reg-fill{height:100%;border-radius:2px;background:var(--green2);}
+.reg-pct{font-size:9px;color:var(--green);font-family:var(--mono);font-weight:700;min-width:28px;text-align:right;}
+.reg-count{font-size:9px;color:var(--text3);font-family:var(--mono);}
+.owner-row{display:flex;align-items:center;gap:5px;margin-top:6px;}
+.owner-av{width:18px;height:18px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:var(--bg);}
+.owner-name{font-size:10px;color:var(--text3);font-family:var(--mono);}
+.rsvp-btn{background:var(--green);color:var(--bg);font-size:10px;font-weight:800;padding:7px 14px;border-radius:6px;border:none;cursor:pointer;font-family:var(--sans);white-space:nowrap;transition:opacity 0.15s;}
+.rsvp-btn:hover{opacity:0.85;}
+.rsvp-btn.rsvped{background:rgba(0,255,128,0.1);color:var(--green);border:1px solid rgba(0,255,128,0.3);}
+.rsvp-btn.ended{background:var(--surface2);color:var(--text3);border:1px solid var(--border);cursor:default;}
+.ward-only{background:rgba(124,58,237,0.12);color:#a78bfa;font-size:9px;font-weight:700;padding:4px 8px;border-radius:4px;border:1px solid rgba(124,58,237,0.2);font-family:var(--mono);}
+
+/* CALENDAR */
+.cal-wrap{display:grid;grid-template-columns:1fr 280px;gap:18px;}
+.cal-main{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.cal-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.cal-nav{display:flex;align-items:center;gap:10px;}
+.cal-nav-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text2);width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;transition:all 0.15s;}
+.cal-nav-btn:hover{background:var(--green-dim);color:var(--green);}
+.cal-month{font-size:14px;font-weight:700;color:var(--text);font-family:var(--mono);}
+.cal-grid{padding:14px;}
+.cal-days-hdr{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px;}
+.cal-day-lbl{font-size:9px;font-weight:700;color:var(--text3);font-family:var(--mono);text-align:center;padding:4px 0;}
+.cal-cells{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.cal-cell{height:42px;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;font-family:var(--mono);color:var(--text3);cursor:pointer;transition:all 0.15s;position:relative;gap:2px;}
+.cal-cell:hover{background:var(--green-dim);color:var(--text);}
+.cal-cell.today{background:rgba(0,255,128,0.12);color:var(--green);font-weight:700;border:1px solid rgba(0,255,128,0.2);}
+.cal-cell.has-event{color:var(--text);}
+.cal-cell.other-month{color:var(--text3);opacity:0.35;}
+.event-dot{width:5px;height:5px;border-radius:50%;}
+.dot-g{background:var(--green);}
+.dot-c{background:var(--cyan);}
+.dot-p{background:#a78bfa;}
+.dot-o{background:var(--orange);}
+.cal-cell.past{opacity:0.5;}
+
+/* UPCOMING SIDEBAR */
+.cal-sidebar{display:flex;flex-direction:column;gap:12px;}
+.upcoming-panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;flex:1;}
+.panel-hdr{padding:12px 16px;border-bottom:1px solid var(--border);font-size:11px;font-weight:700;color:var(--text);font-family:var(--mono);letter-spacing:0.5px;}
+.cal-event-item{padding:10px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.15s;}
+.cal-event-item:last-child{border-bottom:none;}
+.cal-event-item:hover{background:var(--green-dim);}
+.cei-date{font-size:9px;color:var(--text3);font-family:var(--mono);margin-bottom:3px;}
+.cei-title{font-size:11px;font-weight:600;color:var(--text);margin-bottom:3px;line-height:1.3;}
+.cei-ward{font-size:9px;color:var(--text3);font-family:var(--mono);}
+
+/* MODAL OVERLAY */
+.modal-overlay{position:fixed;inset:0;background:rgba(5,10,20,0.85);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;width:600px;max-height:90vh;overflow-y:auto;position:relative;}
+.modal::-webkit-scrollbar{width:3px;}
+.modal::-webkit-scrollbar-thumb{background:var(--border2);}
+.modal-hdr{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg2);z-index:2;}
+.modal-title{font-size:16px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:8px;}
+.modal-close{width:28px;height:28px;border-radius:6px;background:var(--surface);border:1px solid var(--border);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all 0.15s;}
+.modal-close:hover{background:rgba(255,68,68,0.1);color:var(--red);border-color:rgba(255,68,68,0.3);}
+.modal-body{padding:20px 24px;}
+.poster-badge{background:rgba(0,255,128,0.08);border:1px solid rgba(0,255,128,0.18);border-radius:7px;padding:8px 14px;font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:18px;display:flex;align-items:center;gap:6px;}
+.poster-badge b{color:var(--green);}
+.poster-badge span{color:var(--cyan);}
+.form-section{margin-bottom:18px;}
+.form-label{font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--text3);font-family:var(--mono);margin-bottom:7px;display:flex;align-items:center;gap:4px;}
+.form-label .req{color:var(--red);}
+.form-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:9px 14px;font-size:12px;color:var(--text);font-family:var(--mono);outline:none;transition:border-color 0.15s;}
+.form-input:focus{border-color:var(--border2);}
+.form-input::placeholder{color:var(--text3);}
+.form-textarea{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:10px 14px;font-size:12px;color:var(--text);font-family:var(--mono);outline:none;resize:vertical;min-height:80px;transition:border-color 0.15s;}
+.form-textarea:focus{border-color:var(--border2);}
+.form-textarea::placeholder{color:var(--text3);}
+.char-count{font-size:9px;color:var(--text3);font-family:var(--mono);text-align:right;margin-top:4px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-select{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:9px 14px;font-size:12px;color:var(--text);font-family:var(--mono);outline:none;cursor:pointer;}
+.cat-chips{display:flex;flex-wrap:wrap;gap:7px;}
+.cat-chip{font-size:10px;font-weight:700;padding:5px 12px;border-radius:5px;cursor:pointer;font-family:var(--mono);letter-spacing:0.5px;transition:all 0.15s;border:1px solid var(--border);background:var(--surface);color:var(--text3);}
+.cat-chip.sel{border-color:var(--green);color:var(--green);background:rgba(0,255,128,0.08);}
+.upload-zone{background:var(--surface);border:1px dashed var(--border2);border-radius:8px;padding:24px;text-align:center;cursor:pointer;transition:all 0.15s;}
+.upload-zone:hover{background:var(--green-dim);border-color:rgba(0,255,128,0.3);}
+.upload-icon{font-size:22px;margin-bottom:6px;opacity:0.4;}
+.upload-text{font-size:10px;color:var(--text3);font-family:var(--mono);}
+.form-divider{height:1px;background:var(--border);margin:16px 0;}
+.form-section-title{font-size:10px;font-weight:800;letter-spacing:2px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;margin-bottom:12px;}
+.modal-footer{padding:14px 24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:flex-end;gap:10px;position:sticky;bottom:0;background:var(--bg2);}
+.btn-cancel{background:transparent;border:1px solid var(--border2);color:var(--text2);font-size:12px;font-weight:600;padding:8px 18px;border-radius:7px;cursor:pointer;font-family:var(--sans);transition:all 0.15s;}
+.btn-cancel:hover{color:var(--text);}
+.btn-draft{background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.25);color:#a78bfa;font-size:12px;font-weight:700;padding:8px 18px;border-radius:7px;cursor:pointer;font-family:var(--sans);transition:all 0.15s;}
+.btn-draft:hover{background:rgba(124,58,237,0.2);}
+.btn-publish{background:var(--green);color:var(--bg);font-size:12px;font-weight:800;padding:8px 20px;border-radius:7px;cursor:pointer;border:none;font-family:var(--sans);transition:opacity 0.15s;}
+.btn-publish:hover{opacity:0.85;}
+
+/* DETAIL MODAL */
+.detail-banner{background:linear-gradient(135deg,#0d2010,#0a1520);height:120px;border-radius:0;display:flex;align-items:center;justify-content:center;font-size:36px;border-bottom:1px solid var(--border);}
+.detail-body{padding:20px 24px;}
+.detail-tags{display:flex;gap:8px;margin-bottom:12px;}
+.detail-title{font-size:18px;font-weight:800;color:var(--text);letter-spacing:-0.5px;margin-bottom:8px;line-height:1.3;}
+.detail-desc{font-size:12px;color:var(--text3);line-height:1.7;margin-bottom:18px;}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;}
+.dg-item{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:10px 14px;}
+.dg-label{font-size:9px;color:var(--text3);font-family:var(--mono);letter-spacing:1px;margin-bottom:4px;}
+.dg-val{font-size:12px;font-weight:600;color:var(--text);}
+.detail-reg-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.reg-big{font-size:24px;font-weight:800;font-family:var(--mono);color:var(--cyan);}
+.reg-of{font-size:12px;color:var(--text3);font-family:var(--mono);}
+.detail-track{height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;margin-bottom:14px;}
+.detail-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--green2),var(--green));}
+.big-rsvp{width:100%;background:var(--green);color:var(--bg);font-size:14px;font-weight:800;padding:12px;border-radius:8px;border:none;cursor:pointer;font-family:var(--sans);transition:opacity 0.15s;}
+.big-rsvp:hover{opacity:0.85;}
+
+/* View tabs */
+.view-tabs{display:none;}
+</style>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="logo">🌿 <span>THRYVE</span></div>
+    <div class="nav-section">
+      <div class="nav-label">Overview</div>
+      <div class="nav-item" onclick="showTab('upcoming')">⊞ Dashboard</div>
+      <div class="nav-item" onclick="showTab('upcoming')">◎ Live Map</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Issues</div>
+      <div class="nav-item">⚠ All Issues <span class="nav-badge">12</span></div>
+      <div class="nav-item">📋 Ward Report</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Community</div>
+      <div class="nav-item active" id="nav-events">📅 Events</div>
+      <div class="nav-item">👤 Profile</div>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="user-card">
+        <div class="avatar">RK</div>
+        <div>
+          <div class="user-name">Rohan Kumar</div>
+          <div class="user-loc">@ Ward 84</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div>
+        <div class="page-title">Community Events</div>
+        <div class="page-sub">Ward 84 · Koramangala · Apr 28, 2026</div>
+      </div>
+      <div class="topbar-right">
+        <div class="btn-outline" onclick="alert('Syncing calendar...')">🗓 Sync Calendar</div>
+        <div class="btn-outline" onclick="alert('Subscribed to Ward Alerts!')">🔔 Ward Alerts</div>
+        <button class="btn-create" onclick="openCreate()">+ Create Event</button>
+        <div class="online-badge"><span class="status-dot"></span>Node Online</div>
+      </div>
+    </div>
+
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero-stats">
+        <div class="hstat"><div class="hstat-num c1">8</div><div class="hstat-label">Upcoming</div></div>
+        <div class="hstat"><div class="hstat-num c2">3</div><div class="hstat-label">This Week</div></div>
+        <div class="hstat"><div class="hstat-num c3">427</div><div class="hstat-label">RSVP'd</div></div>
+      </div>
+      <div class="hero-title">Community <em>Events</em> &<br>Civic Drives</div>
+      <div class="hero-sub">Cleanups, town halls, workshops & inspections — organized by verified civic leaders across all wards.</div>
+      <div class="hero-note">🔒 Creating & verifying events requires <span>Verified</span> status or higher</div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <div class="tab active" id="tab-upcoming" onclick="showTab('upcoming')">Upcoming <span class="tab-count">8</span></div>
+      <div class="tab" id="tab-live" onclick="showTab('live')">🔴 Live Now <span class="tab-count">1</span></div>
+      <div class="tab" id="tab-past" onclick="showTab('past')">Past <span class="tab-count">24</span></div>
+      <div class="tab" id="tab-mine" onclick="showTab('mine')">My Events <span class="tab-count">3</span></div>
+      <div class="tab" id="tab-cal" onclick="showTab('cal')">🗓 Calendar</div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- UPCOMING -->
+      <div id="view-upcoming">
+        <div class="filter-row">
+          <input class="search-box" placeholder="Search events, wards, organizers..." />
+          <div class="filter-chip active">All</div>
+          <div class="filter-chip">🧹 Cleanup</div>
+          <div class="filter-chip">🏛 Town Hall</div>
+          <div class="filter-chip">🌱 Plantation</div>
+          <div class="filter-chip">📢 Awareness</div>
+          <div class="filter-chip">🚗 Drive</div>
+          <div class="filter-chip">🔍 Inspection</div>
+        </div>
+        <div class="events-grid">
+          <div class="event-card" onclick="openDetail(0)">
+            <div class="card-top">
+              <div class="card-tags"><span class="cat-tag cat-townhall">TOWN HALL</span><div class="ward-dot"></div></div>
+              <div class="card-title">🏛 Ward 67 Town Hall – Traffic & Roads</div>
+              <div class="card-desc">Monthly town hall with BBMP officials to discuss road repair timelines and traffic issues in Indiranagar.</div>
+              <div class="card-meta">
+                <div class="meta-item">📅 8 May 2026 · 10:00</div>
+                <div class="meta-item">📍 Indiranagar Community Hall · Ward 87</div>
+                <div class="xp-pill">+25 XP</div>
+              </div>
+            </div>
+            <div class="card-bottom">
+              <div class="reg-info">
+                <div class="reg-bar-wrap"><div class="reg-track"><div class="reg-fill" style="width:67%"></div></div><div class="reg-pct">67%</div></div>
+                <div class="reg-count">67 / 100 registered</div>
+                <div class="owner-row"><div class="owner-av">GG</div><div class="owner-name">George G.</div></div>
+              </div>
+              <button class="rsvp-btn" onclick="event.stopPropagation();this.textContent=this.textContent=='RSVP →'?'✓ Going':'RSVP →';this.classList.toggle('rsvped')">RSVP →</button>
+            </div>
+          </div>
+
+          <div class="event-card" onclick="openDetail(1)">
+            <div class="card-top">
+              <div class="card-tags"><span class="cat-tag cat-plantation">PLANTATION</span></div>
+              <div class="card-title">🌱 Tree Plantation Drive – Hebbal Lake</div>
+              <div class="card-desc">100 saplings to be planted around Hebbal lake. Bring your own gloves. Refreshments provided.</div>
+              <div class="card-meta">
+                <div class="meta-item">📅 10 May 2026 · 08:00</div>
+                <div class="meta-item">📍 Hebbal Lake Park Gate · Ward 6</div>
+                <div class="xp-pill">+60 XP</div>
+              </div>
+            </div>
+            <div class="card-bottom">
+              <div class="reg-info">
+                <div class="reg-bar-wrap"><div class="reg-track"><div class="reg-fill" style="width:52%"></div></div><div class="reg-pct">52%</div></div>
+                <div class="reg-count">52 / 100 registered</div>
+                <div class="owner-row"><div class="owner-av" style="background:var(--cyan);color:var(--bg);">KR</div><div class="owner-name">Kiran R.</div></div>
+              </div>
+              <button class="rsvp-btn rsvped" onclick="event.stopPropagation();this.textContent=this.textContent=='✓ Going'?'RSVP →':'✓ Going';this.classList.toggle('rsvped')">✓ Going</button>
+            </div>
+          </div>
+
+          <div class="event-card" onclick="openDetail(2)">
+            <div class="card-top">
+              <div class="card-tags"><span class="cat-tag cat-awareness">AWARENESS</span></div>
+              <div class="card-title">💨 Air Quality Awareness Campaign</div>
+              <div class="card-desc">Campaign to spread awareness about air pollution in Silk Board area. Posters, banners & interactive stalls.</div>
+              <div class="card-meta">
+                <div class="meta-item">📅 13 May 2026 · 09:00</div>
+                <div class="meta-item">📍 Silk Board Junction · Ward 29</div>
+                <div class="xp-pill">+25 XP</div>
+              </div>
+            </div>
+            <div class="card-bottom">
+              <div class="reg-info">
+                <div class="reg-bar-wrap"><div class="reg-track"><div class="reg-fill" style="width:40%;background:var(--orange)"></div></div><div class="reg-pct" style="color:var(--orange)">40%</div></div>
+                <div class="reg-count">200 / 500 registered</div>
+                <div class="owner-row"><div class="owner-av" style="background:var(--orange);color:var(--bg);">MC</div><div class="owner-name">Meena C.</div></div>
+              </div>
+              <button class="rsvp-btn" onclick="event.stopPropagation();this.textContent=this.textContent=='RSVP →'?'✓ Going':'RSVP →';this.classList.toggle('rsvped')">RSVP →</button>
+            </div>
+          </div>
+
+          <div class="event-card" onclick="openDetail(3)">
+            <div class="card-top">
+              <div class="card-tags"><span class="cat-tag cat-drive">DRIVE</span><span style="font-size:9px;font-weight:700;padding:3px 7px;border-radius:4px;background:rgba(255,215,0,0.1);color:var(--yellow);border:1px solid rgba(255,215,0,0.2);font-family:var(--mono);">PENDING</span></div>
+              <div class="card-title">♻️ Electronic City Garbage Segregation Drive</div>
+              <div class="card-desc">Educate residents on proper waste segregation. Door-to-door campaign across 6 layouts.</div>
+              <div class="card-meta">
+                <div class="meta-item">📅 15 May 2026 · 07:00</div>
+                <div class="meta-item">📍 Phase 1 Entry Gate · Ward 137</div>
+                <div class="xp-pill">+50 XP</div>
+              </div>
+            </div>
+            <div class="card-bottom">
+              <div class="reg-info">
+                <div class="reg-bar-wrap"><div class="reg-track"><div class="reg-fill" style="width:43%;background:var(--cyan)"></div></div><div class="reg-pct" style="color:var(--cyan)">43%</div></div>
+                <div class="reg-count">34 / 80 registered</div>
+                <div class="owner-row"><div class="owner-av" style="background:#a78bfa;color:var(--bg);">SK</div><div class="owner-name">Suresh K.</div></div>
+              </div>
+              <div class="ward-only">Ward Only</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LIVE -->
+      <div id="view-live" style="display:none;">
+        <div class="events-grid">
+          <div class="event-card" style="border-color:rgba(255,68,68,0.3);" onclick="openDetail(4)">
+            <div style="padding:8px 16px;background:rgba(255,68,68,0.08);border-bottom:1px solid rgba(255,68,68,0.15);font-size:10px;font-weight:700;color:var(--red);font-family:var(--mono);letter-spacing:1px;display:flex;align-items:center;gap:6px;"><span style="width:7px;height:7px;border-radius:50%;background:var(--red);display:inline-block;animation:pulse 1s infinite;"></span>LIVE NOW · Started 45 min ago</div>
+            <div class="card-top">
+              <div class="card-tags"><span class="cat-tag cat-cleanup">CLEANUP</span></div>
+              <div class="card-title">🧹 Koramangala Water Audit Walk</div>
+              <div class="card-desc">Community audit of water pipelines and wastage in Ward 84. Live reporting in progress.</div>
+              <div class="card-meta">
+                <div class="meta-item">📅 28 Apr 2026 · 08:00</div>
+                <div class="meta-item">📍 4th Block, Koramangala</div>
+                <div class="xp-pill">+75 XP</div>
+              </div>
+            </div>
+            <div class="card-bottom">
+              <div class="reg-info">
+                <div class="reg-bar-wrap"><div class="reg-track"><div class="reg-fill" style="width:88%"></div></div><div class="reg-pct">88%</div></div>
+                <div class="reg-count">88 / 100 joined</div>
+                <div class="owner-row"><div class="owner-av">RK</div><div class="owner-name">Rohan Kumar <span style="color:var(--green);font-size:9px;">(you)</span></div></div>
+              </div>
+              <button class="rsvp-btn rsvped">✓ Joined</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAST -->
+      <div id="view-past" style="display:none;">
+        <div class="filter-row">
+          <input class="search-box" placeholder="Search past events..." />
+          <div class="filter-chip active">All</div>
+          <div class="filter-chip">🧹 Cleanup</div>
+          <div class="filter-chip">🏛 Town Hall</div>
+          <div class="filter-chip">🔍 Inspection</div>
+        </div>
+        <div class="events-grid">
+          <div class="event-card" onclick="openDetail(5)">
+            <div class="card-top">
+              <div class="card-tags"><span class="cat-tag cat-inspection">INSPECTION</span></div>
+              <div class="card-title">🔍 Koramangala Water Audit Walk</div>
+              <div class="card-desc">Community audit of water pipelines and wastage in Ward 84.</div>
+              <div class="card-meta">
+                <div class="meta-item">📅 29 Apr 2026 · 08:00</div>
+                <div class="meta-item">📍 4th Block, Koramangala · Ward 84</div>
+                <div class="xp-pill">+75 XP</div>
+              </div>
+            </div>
+            <div class="card-bottom">
+              <div class="reg-info">
+                <div class="reg-bar-wrap"><div class="reg-track"><div class="reg-fill" style="width:88%"></div></div><div class="reg-pct">88%</div></div>
+                <div class="reg-count">31 / 35 registered</div>
+                <div class="owner-row"><div class="owner-av">RK</div><div class="owner-name">Rohan Kumar</div></div>
+              </div>
+              <button class="rsvp-btn ended">Ended</button>
+            </div>
+          </div>
+          <div class="event-card" onclick="openDetail(6)">
+            <div class="card-top">
+              <div class="card-tags"><span class="cat-tag cat-cleanup">CLEANUP</span></div>
+              <div class="card-title">🧹 JP Nagar Cleanliness Drive – April Edition</div>
+              <div class="card-desc">Monthly cleanup at JP Nagar 6th and 7th phase.</div>
+              <div class="card-meta">
+                <div class="meta-item">📅 14 Apr 2026 · 07:00</div>
+                <div class="meta-item">📍 5th Phase Junction · Ward 48</div>
+                <div class="xp-pill">+40 XP</div>
+              </div>
+            </div>
+            <div class="card-bottom">
+              <div class="reg-info">
+                <div class="reg-bar-wrap"><div class="reg-track"><div class="reg-fill" style="width:34%"></div></div><div class="reg-pct">34%</div></div>
+                <div class="reg-count">34 / 100 registered</div>
+                <div class="owner-row"><div class="owner-av" style="background:var(--cyan);color:var(--bg);">RN</div><div class="owner-name">Rahul N.</div></div>
+              </div>
+              <button class="rsvp-btn ended">Ended</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MY EVENTS -->
+      <div id="view-mine" style="display:none;">
+        <div style="font-size:12px;color:var(--text3);font-family:var(--mono);margin-bottom:14px;">Events you've created or RSVP'd to</div>
+        <div class="events-grid">
+          <div class="event-card rsvped-border" style="border-color:rgba(0,255,128,0.25);" onclick="openDetail(0)">
+            <div style="padding:6px 16px;background:rgba(0,255,128,0.05);border-bottom:1px solid rgba(0,255,128,0.1);font-size:9px;font-weight:700;color:var(--green);font-family:var(--mono);letter-spacing:1px;">✓ RSVP'D</div>
+            <div class="card-top">
+              <div class="card-tags"><span class="cat-tag cat-plantation">PLANTATION</span></div>
+              <div class="card-title">🌱 Tree Plantation Drive – Hebbal Lake</div>
+              <div class="card-desc">100 saplings to be planted around Hebbal lake.</div>
+              <div class="card-meta"><div class="meta-item">📅 10 May 2026 · 08:00</div><div class="xp-pill">+60 XP</div></div>
+            </div>
+            <div class="card-bottom">
+              <div class="reg-info"><div class="reg-count">52 / 100 registered</div></div>
+              <button class="rsvp-btn rsvped">✓ Going</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CALENDAR -->
+      <div id="view-cal" style="display:none;">
+        <div class="cal-wrap">
+          <div class="cal-main">
+            <div class="cal-header">
+              <div class="cal-nav">
+                <div class="cal-nav-btn">‹</div>
+                <div class="cal-month">MAY 2026</div>
+                <div class="cal-nav-btn">›</div>
+              </div>
+              <div style="font-size:10px;color:var(--text3);font-family:var(--mono);">3 events this month</div>
+            </div>
+            <div class="cal-grid">
+              <div class="cal-days-hdr">
+                <div class="cal-day-lbl">SUN</div><div class="cal-day-lbl">MON</div><div class="cal-day-lbl">TUE</div><div class="cal-day-lbl">WED</div><div class="cal-day-lbl">THU</div><div class="cal-day-lbl">FRI</div><div class="cal-day-lbl">SAT</div>
+              </div>
+              <div class="cal-cells" id="cal-cells"></div>
+            </div>
+          </div>
+          <div class="cal-sidebar">
+            <div class="upcoming-panel">
+              <div class="panel-hdr">EVENTS THIS MONTH</div>
+              <div class="cal-event-item" onclick="openDetail(0)">
+                <div class="cei-date">8 MAY · 10:00</div>
+                <div class="cei-title">🏛 Ward 67 Town Hall – Traffic & Roads</div>
+                <div class="cei-ward">Ward 87 · Indiranagar Community Hall</div>
+              </div>
+              <div class="cal-event-item" onclick="openDetail(1)">
+                <div class="cei-date">10 MAY · 08:00</div>
+                <div class="cei-title">🌱 Tree Plantation Drive – Hebbal Lake</div>
+                <div class="cei-ward">Ward 6 · Hebbal Lake Park Gate</div>
+              </div>
+              <div class="cal-event-item" onclick="openDetail(2)">
+                <div class="cei-date">13 MAY · 09:00</div>
+                <div class="cei-title">💨 Air Quality Awareness Campaign</div>
+                <div class="cei-ward">Ward 29 · Silk Board Junction</div>
+              </div>
+              <div class="cal-event-item" onclick="openDetail(3)">
+                <div class="cei-date">15 MAY · 07:00</div>
+                <div class="cei-title">♻️ Electronic City Garbage Drive</div>
+                <div class="cei-ward">Ward 137 · Phase 1 Entry Gate</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- CREATE EVENT MODAL -->
+<div class="modal-overlay" id="create-modal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title">✦ Create New Event</div>
+      <div class="modal-close" onclick="closeCreate()">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="poster-badge">✅ Posting as <b>Rohan Kumar</b> · <span>Verified Moderator</span></div>
+
+      <div class="form-section">
+        <div class="form-label">EVENT TITLE <span class="req">*</span></div>
+        <input class="form-input" id="new-title" placeholder="e.g. Ward 84 Cleanup Drive" maxlength="55" oninput="document.getElementById('title-count').textContent=this.value.length+'/55'" />
+        <div class="char-count"><span id="title-count">0/55</span></div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-label">CATEGORY <span class="req">*</span></div>
+        <div class="cat-chips">
+          <div class="cat-chip" onclick="selCat(this)">🧹 Cleanup</div>
+          <div class="cat-chip" onclick="selCat(this)">🏛 Town Hall</div>
+          <div class="cat-chip" onclick="selCat(this)">🔧 Workshop</div>
+          <div class="cat-chip" onclick="selCat(this)">🚗 Drive</div>
+          <div class="cat-chip" onclick="selCat(this)">🔍 Inspection</div>
+          <div class="cat-chip" onclick="selCat(this)">🌱 Plantation</div>
+          <div class="cat-chip" onclick="selCat(this)">📢 Awareness</div>
+          <div class="cat-chip" onclick="selCat(this)">✦ Other</div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-label">DESCRIPTION <span class="req">*</span></div>
+        <textarea class="form-textarea" placeholder="Describe the event, what to bring, what will happen..." maxlength="500" oninput="document.getElementById('desc-count').textContent=this.value.length+'/500'"></textarea>
+        <div class="char-count"><span id="desc-count">0/500</span></div>
+      </div>
+
+      <div class="form-divider"></div>
+      <div class="form-section-title">Date & Time</div>
+      <div class="form-row" style="margin-bottom:12px;">
+        <div><div class="form-label">START DATE <span class="req">*</span></div><input type="date" class="form-input" id="new-start-date" /></div>
+        <div><div class="form-label">END DATE</div><input type="date" class="form-input" /></div>
+      </div>
+      <div class="form-row">
+        <div><div class="form-label">START TIME <span class="req">*</span></div><input type="time" class="form-input" value="07:00" /></div>
+        <div><div class="form-label">END TIME</div><input type="time" class="form-input" value="12:00" /></div>
+      </div>
+
+      <div class="form-divider"></div>
+      <div class="form-section-title">Location & Ward</div>
+      <div class="form-row" style="margin-bottom:12px;">
+        <div><div class="form-label">WARD <span class="req">*</span></div>
+          <select class="form-select form-input">
+            <option value="">Select ward...</option>
+            <option>Ward 84 – Koramangala</option>
+            <option>Ward 87 – Indiranagar</option>
+            <option>Ward 6 – Hebbal</option>
+            <option>Ward 29 – Silk Board</option>
+          </select>
+        </div>
+        <div><div class="form-label">VENUE / LANDMARK <span class="req">*</span></div><input class="form-input" placeholder="e.g. BDA Complex Gate 2" /></div>
+      </div>
+      <div class="form-section">
+        <div class="form-label">FULL ADDRESS</div>
+        <input class="form-input" placeholder="Street, Area, Bengaluru" />
+      </div>
+
+      <div class="form-divider"></div>
+      <div class="form-section-title">Capacity & Permissions</div>
+      <div class="form-row" style="margin-bottom:12px;">
+        <div><div class="form-label">MAX ATTENDEES</div><input class="form-input" placeholder="e.g. 100" type="number" /></div>
+        <div><div class="form-label">XP REWARD FOR ATTENDEES</div>
+          <select class="form-select form-input"><option>+25 XP</option><option>+50 XP</option><option>+75 XP</option><option>+100 XP</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div><div class="form-label">RSVP REQUIREMENT</div>
+          <select class="form-select form-input"><option>Open – Anyone can join</option><option>Approval required</option><option>Ward residents only</option></select>
+        </div>
+        <div><div class="form-label">VISIBILITY</div>
+          <select class="form-select form-input"><option>Public – All users</option><option>Ward only</option><option>Invite only</option></select>
+        </div>
+      </div>
+
+      <div class="form-divider"></div>
+      <div class="form-section-title">Event Banner (Optional)</div>
+      <div class="upload-zone">
+        <div class="upload-icon">🖼</div>
+        <div class="upload-text">Click to upload banner image<br>PNG, JPG up to 5MB · 1200×600px recommended</div>
+      </div>
+
+      <div class="form-divider"></div>
+      <div class="form-row">
+        <div><div class="form-label">CONTACT / WHATSAPP GROUP</div><input class="form-input" placeholder="+91 98xxx xxxxx or link" /></div>
+        <div><div class="form-label">CO-ORGANIZER (OPTIONAL)</div><input class="form-input" placeholder="@username or Ward Admin name" /></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeCreate()">Cancel</button>
+      <button class="btn-draft" onclick="closeCreate()">💾 Save Draft</button>
+      <button class="btn-publish" onclick="publishEvent()">🌿 Publish Event</button>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-overlay" id="detail-modal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title" id="det-cat-label"></div>
+      <div class="modal-close" onclick="closeDetail()">✕</div>
+    </div>
+    <div class="detail-banner" id="det-banner">🌱</div>
+    <div class="detail-body">
+      <div class="detail-tags" id="det-tags"></div>
+      <div class="detail-title" id="det-title"></div>
+      <div class="detail-desc" id="det-desc"></div>
+      <div class="detail-grid" id="det-grid"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div><span class="reg-big" id="det-reg-n"></span> <span class="reg-of" id="det-reg-of"></span></div>
+        <div id="det-xp" class="xp-pill"></div>
+      </div>
+      <div class="detail-track"><div class="detail-fill" id="det-bar"></div></div>
+      <button class="big-rsvp" id="det-rsvp-btn" onclick="toggleDetailRsvp()">RSVP →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var eventsData=[
+  {icon:'🏛',emoji:'🏛',title:'Ward 67 Town Hall – Traffic & Roads',cat:'TOWN HALL',catClass:'cat-townhall',desc:'Monthly town hall with BBMP officials to discuss road repair timelines and traffic issues in Indiranagar. Bring your queries and concerns.',date:'8 May 2026',time:'10:00 AM',venue:'Indiranagar Community Hall',ward:'Ward 87',xp:'+25 XP',reg:67,total:100,owner:'George G.',rsvped:false,status:'upcoming'},
+  {icon:'🌱',emoji:'🌱',title:'Tree Plantation Drive – Hebbal Lake',cat:'PLANTATION',catClass:'cat-plantation',desc:'100 saplings to be planted around Hebbal lake. Bring your own gloves. Refreshments will be provided after the drive.',date:'10 May 2026',time:'08:00 AM',venue:'Hebbal Lake Park Gate',ward:'Ward 6',xp:'+60 XP',reg:52,total:100,owner:'Kiran R.',rsvped:true,status:'upcoming'},
+  {icon:'💨',emoji:'💨',title:'Air Quality Awareness Campaign',cat:'AWARENESS',catClass:'cat-awareness',desc:'Campaign to spread awareness about air pollution in Silk Board area. Posters, banners & interactive stalls will be set up.',date:'13 May 2026',time:'09:00 AM',venue:'Silk Board Junction',ward:'Ward 29',xp:'+25 XP',reg:200,total:500,owner:'Meena C.',rsvped:false,status:'upcoming'},
+  {icon:'♻️',emoji:'♻️',title:'Electronic City Garbage Segregation Drive',cat:'DRIVE',catClass:'cat-drive',desc:'Educate residents on proper waste segregation. Door-to-door campaign across 6 layouts in Electronic City.',date:'15 May 2026',time:'07:00 AM',venue:'Phase 1 Entry Gate',ward:'Ward 137',xp:'+50 XP',reg:34,total:80,owner:'Suresh K.',rsvped:false,status:'upcoming'},
+  {icon:'🧹',emoji:'🧹',title:'Koramangala Water Audit Walk (LIVE)',cat:'CLEANUP',catClass:'cat-cleanup',desc:'Community audit of water pipelines and wastage in Ward 84. Live reporting and documentation in progress.',date:'28 Apr 2026',time:'08:00 AM',venue:'4th Block, Koramangala',ward:'Ward 84',xp:'+75 XP',reg:88,total:100,owner:'Rohan Kumar',rsvped:true,status:'live'},
+  {icon:'🔍',emoji:'🔍',title:'Koramangala Water Audit Walk',cat:'INSPECTION',catClass:'cat-inspection',desc:'Community audit of water pipelines and wastage in Ward 84.',date:'29 Apr 2026',time:'08:00 AM',venue:'4th Block, Koramangala',ward:'Ward 84',xp:'+75 XP',reg:31,total:35,owner:'Rohan Kumar',rsvped:true,status:'past'},
+  {icon:'🧹',emoji:'🧹',title:'JP Nagar Cleanliness Drive – April Edition',cat:'CLEANUP',catClass:'cat-cleanup',desc:'Monthly cleanup at JP Nagar 6th and 7th phase.',date:'14 Apr 2026',time:'07:00 AM',venue:'5th Phase Junction',ward:'Ward 48',xp:'+40 XP',reg:34,total:100,owner:'Rahul N.',rsvped:false,status:'past'}
+];
+
+function showTab(t){
+  ['upcoming','live','past','mine','cal'].forEach(function(v){
+    var el=document.getElementById('view-'+v);
+    if(el)el.style.display=v===t?'block':'none';
+    var tab=document.getElementById('tab-'+v);
+    if(tab)tab.classList.toggle('active',v===t);
+  });
+}
+
+function openCreate(){document.getElementById('create-modal').classList.add('open');}
+function closeCreate(){document.getElementById('create-modal').classList.remove('open');}
+
+function publishEvent(){
+  var t=document.getElementById('new-title').value.trim();
+  if(!t){alert('Please enter an event title.');return;}
+  closeCreate();
+  alert('Event "'+t+'" published successfully! 🌿');
+}
+
+function selCat(el){
+  document.querySelectorAll('.cat-chip').forEach(function(c){c.classList.remove('sel');});
+  el.classList.add('sel');
+}
+
+function openDetail(i){
+  var e=eventsData[i];
+  document.getElementById('det-cat-label').textContent=e.icon+' '+e.cat;
+  document.getElementById('det-banner').textContent=e.emoji;
+  document.getElementById('det-title').textContent=e.icon+' '+e.title;
+  document.getElementById('det-desc').textContent=e.desc;
+  document.getElementById('det-tags').innerHTML='<span class="cat-tag '+e.catClass+'">'+e.cat+'</span><div class="xp-pill">'+e.xp+'</div>';
+  document.getElementById('det-grid').innerHTML=
+    '<div class="dg-item"><div class="dg-label">DATE</div><div class="dg-val">'+e.date+'</div></div>'+
+    '<div class="dg-item"><div class="dg-label">TIME</div><div class="dg-val">'+e.time+'</div></div>'+
+    '<div class="dg-item"><div class="dg-label">VENUE</div><div class="dg-val">'+e.venue+'</div></div>'+
+    '<div class="dg-item"><div class="dg-label">WARD</div><div class="dg-val">'+e.ward+'</div></div>'+
+    '<div class="dg-item"><div class="dg-label">ORGANIZER</div><div class="dg-val">'+e.owner+'</div></div>'+
+    '<div class="dg-item"><div class="dg-label">STATUS</div><div class="dg-val" style="text-transform:uppercase;color:var(--green);">'+e.status+'</div></div>';
+  document.getElementById('det-reg-n').textContent=e.reg;
+  document.getElementById('det-reg-of').textContent='/ '+e.total+' registered';
+  document.getElementById('det-xp').textContent=e.xp;
+  document.getElementById('det-bar').style.width=Math.round(e.reg/e.total*100)+'%';
+  var btn=document.getElementById('det-rsvp-btn');
+  if(e.status==='past'){btn.textContent='Event Ended';btn.style.background='var(--surface2)';btn.style.color='var(--text3)';btn.style.cursor='default';}
+  else if(e.rsvped){btn.textContent='✓ Going · Cancel RSVP';btn.style.background='rgba(0,255,128,0.1)';btn.style.color='var(--green)';btn.style.border='1px solid rgba(0,255,128,0.3)';}
+  else{btn.textContent='RSVP → Register Now';btn.style.background='var(--green)';btn.style.color='var(--bg)';btn.style.border='none';}
+  document.getElementById('detail-modal').classList.add('open');
+}
+
+function closeDetail(){document.getElementById('detail-modal').classList.remove('open');}
+
+function toggleDetailRsvp(){
+  var btn=document.getElementById('det-rsvp-btn');
+  if(btn.textContent.includes('Cancel')){
+    btn.textContent='RSVP → Register Now';btn.style.background='var(--green)';btn.style.color='var(--bg)';btn.style.border='none';
+  } else if(!btn.textContent.includes('Ended')){
+    btn.textContent='✓ Going · Cancel RSVP';btn.style.background='rgba(0,255,128,0.1)';btn.style.color='var(--green)';btn.style.border='1px solid rgba(0,255,128,0.3)';
+  }
+}
+
+// Build calendar
+(function(){
+  var cells=document.getElementById('cal-cells');
+  var eventDays={8:'g',10:'p',13:'o',15:'c'};
+  var firstDay=5; // May 1 2026 = Friday
+  var totalDays=31;
+  var html='';
+  for(var i=0;i<firstDay;i++){
+    var prev=30-firstDay+i+1;
+    html+='<div class="cal-cell other-month">'+prev+'</div>';
+  }
+  for(var d=1;d<=totalDays;d++){
+    var cls='cal-cell';
+    var dot='';
+    if(d===28)cls+=' past'; // today is apr 28, may hasn't started
+    if(eventDays[d]){
+      cls+=' has-event';
+      var dc=eventDays[d]==='g'?'dot-p':eventDays[d]==='p'?'dot-g':eventDays[d]==='o'?'dot-o':'dot-c';
+      dot='<div class="event-dot '+dc+'"></div>';
+    }
+    html+='<div class="'+cls+'">'+d+dot+'</div>';
+  }
+  var remaining=(7-((firstDay+totalDays)%7))%7;
+  for(var n=1;n<=remaining;n++){html+='<div class="cal-cell other-month">'+n+'</div>';}
+  cells.innerHTML=html;
+})();
+</script>

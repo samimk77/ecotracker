@@ -58,8 +58,13 @@ export default function LeafletMap({ center, issues = [] }) {
       >
         <MapResizer />
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png"
+          url="https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png"
           attribution='&copy; CARTO'
+        />
+        <TileLayer
+          url="https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}.png"
+          attribution=''
+          className="leaflet-labels-layer"
         />
         
         {data.zones && (

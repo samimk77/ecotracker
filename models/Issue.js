@@ -37,8 +37,10 @@ const issueSchema = new mongoose.Schema({
 
   // Engagement
   upvoteCount: { type: Number, default: 0 },
+  dislikeCount: { type: Number, default: 0 },
   verificationCount: { type: Number, default: 0 },
   disputeCount: { type: Number, default: 0 },
+
 
   // Urgency
   urgencyScore: { type: Number, default: 0 },

@@ -2,6 +2,10 @@ import { useState, useEffect, useRef } from 'react';
 import { X, Camera, Video, MapPin, Upload, Loader2, CheckCircle2, Type, RefreshCw, StopCircle } from 'lucide-react';
 import api from '../api';
 import { useLocation } from '../context/LocationContext';
+import MapComponent from './MapComponent';
+import { Autocomplete, useJsApiLoader } from '@react-google-maps/api';
+
+const libraries = ['places'];
 
 const CreateIssueModal = ({ isOpen, onClose, onSuccess }) => {
   const { location: liveLocation } = useLocation();
@@ -28,6 +32,13 @@ const CreateIssueModal = ({ isOpen, onClose, onSuccess }) => {
   const videoRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
+  const autocompleteRef = useRef(null);
+
+  const { isLoaded } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "",
+    libraries
+  });
 
   useEffect(() => {
     if (isOpen) {
@@ -131,6 +142,20 @@ const CreateIssueModal = ({ isOpen, onClose, onSuccess }) => {
     mediaRecorderRef.current.stop();
     setIsRecording(false);
     stopCamera();
+  };
+
+  const onPlaceChanged = () => {
+    if (autocompleteRef.current !== null) {
+      const place = autocompleteRef.current.getPlace();
+      if (place.geometry) {
+        setFormData(prev => ({
+          ...prev,
+          address: place.formatted_address,
+          lat: place.geometry.location.lat(),
+          lng: place.geometry.location.lng()
+        }));
+      }
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -241,18 +266,46 @@ const CreateIssueModal = ({ isOpen, onClose, onSuccess }) => {
                   
                   {isManualLocation ? (
                     <div className="flex-col gap-2">
-                      <input type="text" className="form-input text-xs" placeholder="Address / Landmark" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} />
+                      {isLoaded ? (
+                        <Autocomplete 
+                          onLoad={ref => autocompleteRef.current = ref}
+                          onPlaceChanged={onPlaceChanged}
+                        >
+                          <input 
+                            type="text" 
+                            className="form-input text-xs" 
+                            placeholder="Search Address / Landmark" 
+                            value={formData.address} 
+                            onChange={e => setFormData({...formData, address: e.target.value})} 
+                          />
+                        </Autocomplete>
+                      ) : (
+                        <input type="text" className="form-input text-xs" placeholder="Address / Landmark" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} />
+                      )}
                       <div className="grid grid-cols-2 gap-2">
                         <input type="number" step="any" className="form-input text-xs" placeholder="Latitude" value={formData.lat} onChange={e => setFormData({...formData, lat: e.target.value})} />
                         <input type="number" step="any" className="form-input text-xs" placeholder="Longitude" value={formData.lng} onChange={e => setFormData({...formData, lng: e.target.value})} />
                       </div>
+                      <div style={{ height: '150px', marginTop: '0.5rem' }}>
+                        <MapComponent 
+                          center={{ lat: parseFloat(formData.lat) || 0, lng: parseFloat(formData.lng) || 0 }} 
+                          onMapClick={(lat, lng) => setFormData(prev => ({ ...prev, lat, lng }))}
+                        />
+                      </div>
                     </div>
                   ) : (
-                    <div className="form-input text-xs flex justify-between items-center group">
-                      <span className={formData.lat ? 'text-primary font-bold' : 'text-muted italic'}>
-                        {formData.lat ? `${formData.lat.toFixed(4)}, ${formData.lng.toFixed(4)}` : 'Scanning for Satellites...'}
-                      </span>
-                      <MapPin size={14} className={locating ? 'animate-bounce text-primary' : 'text-muted'} onClick={handleLocate} />
+                    <div className="flex-col gap-2">
+                      <div className="form-input text-xs flex justify-between items-center group">
+                        <span className={formData.lat ? 'text-primary font-bold' : 'text-muted italic'}>
+                          {formData.lat ? `${formData.lat.toFixed(4)}, ${formData.lng.toFixed(4)}` : 'Scanning for Satellites...'}
+                        </span>
+                        <MapPin size={14} className={locating ? 'animate-bounce text-primary' : 'text-muted'} onClick={handleLocate} />
+                      </div>
+                      {formData.lat && (
+                        <div style={{ height: '150px' }}>
+                          <MapComponent center={{ lat: parseFloat(formData.lat), lng: parseFloat(formData.lng) }} />
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

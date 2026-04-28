@@ -6,6 +6,7 @@ import api from '../api';
 const Profile = () => {
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [events, setEvents] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,6 +19,9 @@ const Profile = () => {
           if (profileRes.data.success) {
             setProfileData(profileRes.data);
           }
+          // Fetch Events
+          const eventsRes = await api.get('/events');
+          setEvents(eventsRes.data.events);
         }
       } catch (err) {
         console.error("Profile fetch error:", err);
@@ -28,6 +32,18 @@ const Profile = () => {
     };
     fetchProfile();
   }, [navigate]);
+
+  const handleJoinEvent = async (eventId) => {
+    try {
+      const res = await api.post(`/events/${eventId}/join`);
+      // Update local state
+      setEvents(events.map(ev => 
+        ev._id === eventId ? { ...ev, hasJoined: res.data.joined, participantCount: res.data.participantCount } : ev
+      ));
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to join event');
+    }
+  };
 
   if (loading) return <div className="flex justify-center items-center h-screen text-primary">LOADING ARCHIVE...</div>;
   if (!profileData) return <div className="p-8 text-danger">ERROR: AUTH_SESSION_EXPIRED</div>;
@@ -157,13 +173,72 @@ const Profile = () => {
         </div>
       </div>
 
-      <div className="flex justify-center gap-6 mt-4">
-        <button className="text-[10px] font-bold text-muted hover:text-danger tracking-widest transition-colors" onClick={() => {
-          localStorage.removeItem('token');
-          navigate('/login');
-        }}>TERMINATE SESSION</button>
-        <span className="text-[10px] font-bold text-primary/30 tracking-[0.3em]">ECOIMPACT_ENCRYPTED_V4.2</span>
+      {/* Upcoming Eco-Events */}
+      <div className="glass-card p-8 flex-col gap-8">
+        <div className="flex justify-between items-center">
+          <h3 className="text-sm font-bold uppercase tracking-widest">Upcoming Eco-Events</h3>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-6">
+          {events.length === 0 ? (
+            <p className="text-muted text-xs uppercase tracking-widest">No upcoming events found.</p>
+          ) : (
+            events.map((event) => (
+              <div key={event._id} className="bg-white/5 p-6 rounded-2xl border border-white/5 flex flex-col justify-between">
+                <div>
+                  <div className="flex justify-between items-start mb-4">
+                    <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-[8px] font-black uppercase tracking-widest">{event.category}</span>
+                    <span className="text-[10px] font-bold text-muted uppercase tracking-widest">{new Date(event.date).toLocaleDateString()}</span>
+                  </div>
+                  <h4 className="text-lg font-bold mb-2">{event.title}</h4>
+                  <p className="text-xs text-muted mb-4 line-clamp-2">{event.description}</p>
+                </div>
+                <div className="flex justify-between items-center mt-4 pt-4 border-t border-white/5">
+                  <div className="flex-col">
+                    <span className="text-xl font-black text-white">{event.participantCount || 0}</span>
+                    <span className="text-[8px] font-bold text-muted uppercase tracking-widest">Participants</span>
+                  </div>
+                  <button 
+                    onClick={() => handleJoinEvent(event._id)}
+                    className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                      event.hasJoined 
+                        ? 'bg-primary/20 text-primary border border-primary/30' 
+                        : 'bg-primary text-[#000] hover:shadow-[0_0_15px_rgba(52,211,153,0.3)]'
+                    }`}
+                  >
+                    {event.hasJoined ? 'JOINED' : 'JOIN ACTION'}
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
+
+      <div className="flex justify-center gap-6 mt-8">
+        {(user.role === 'moderator' || user.role === 'authority') && (
+          <button 
+            className="px-8 py-3 rounded-xl bg-primary/10 text-primary border border-primary/20 text-[10px] font-bold hover:bg-primary hover:text-white transition-all tracking-[0.2em]" 
+            onClick={() => navigate('/moderator')}
+          >
+            ENTER MOD TERMINAL
+          </button>
+        )}
+        <button 
+          className="px-8 py-3 rounded-xl bg-danger/10 text-danger border border-danger/20 text-[10px] font-bold hover:bg-danger hover:text-white transition-all tracking-[0.2em]" 
+          onClick={() => {
+            localStorage.removeItem('token');
+            navigate('/login');
+          }}
+        >
+          LOGOUT
+        </button>
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+          <span className="text-[10px] font-bold text-primary/50 tracking-[0.3em] uppercase">Identity Authenticated: {user.role}</span>
+        </div>
+      </div>
+
     </div>
   );
 };

@@ -7,6 +7,7 @@ const {
   getIssues,
   getIssue,
   upvoteIssue,
+  dislikeIssue,
   verifyIssue,
   uploadAfterImage,
   moderatorAction,
@@ -24,7 +25,9 @@ router.post('/', protect, uploadIssueMedia, createIssue);
 
 // Community actions
 router.post('/:id/upvote', protect, upvoteIssue);
+router.post('/:id/dislike', protect, dislikeIssue);
 router.post('/:id/verify', protect, verifyIssue);
+
 
 // After image upload (reporter only, on resolution)
 router.post('/:id/after-image', protect, uploadIssueImage.single('image'), uploadAfterImage);

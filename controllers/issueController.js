@@ -1,8 +1,13 @@
 const Issue = require('../models/Issue');
-const { Vote, Verification } = require('../models/VoteVerification');
+const { Vote, Verification, Dislike } = require('../models/VoteVerification');
 const User = require('../models/User');
 const { generateEscalationEmail, triageImage } = require('../services/aiService');
+const { resolveWardFromCoords, getAddressFromCoords } = require('../services/geocodingService');
+const { calculateUrgencyScore } = require('../services/urgencyService');
+const { sendEscalationEmail } = require('../services/emailService');
 const { getDistanceInMeters } = require('../utils/geo');
+
+
 
 // POST /api/issues
 const createIssue = async (req, res) => {
@@ -25,6 +30,11 @@ const createIssue = async (req, res) => {
       },
       address: address || '',
     });
+
+    // Auto-resolve address if missing
+    if (!issue.address) {
+      issue.address = await getAddressFromCoords(parseFloat(lat), parseFloat(lng));
+    }
 
     // Resolve ward from coordinates
     const ward = await resolveWardFromCoords(parseFloat(lat), parseFloat(lng));
@@ -86,7 +96,7 @@ const getIssues = async (req, res) => {
       sort = 'urgency', page = 1, limit = 20,
     } = req.query;
 
-    const filter = {};
+    const filter = { status: { $ne: 'rejected' } };
     if (category) filter.category = category;
     if (status) filter.status = status;
     if (ward) filter.ward = ward;
@@ -122,17 +132,23 @@ const getIssues = async (req, res) => {
     // Attach user's vote/verification status
     let userVotes = {};
     let userVerifications = {};
+    let userDislikes = {};
+
     if (req.user) {
-      const issueIds = issues.map(i => i._id);
-      const votes = await Vote.find({ user: req.user._id, issue: { $in: issueIds } });
-      const verifs = await Verification.find({ user: req.user._id, issue: { $in: issueIds } });
+      const issuesIds = issues.map(i => i._id);
+      const votes = await Vote.find({ user: req.user._id, issue: { $in: issuesIds } });
+      const verifs = await Verification.find({ user: req.user._id, issue: { $in: issuesIds } });
+      const dislikes = await Dislike.find({ user: req.user._id, issue: { $in: issuesIds } });
+      
       votes.forEach(v => { userVotes[v.issue.toString()] = true; });
       verifs.forEach(v => { userVerifications[v.issue.toString()] = v.type; });
+      dislikes.forEach(d => { userDislikes[d.issue.toString()] = true; });
     }
 
     const issuesWithStatus = issues.map(issue => ({
       ...issue.toObject(),
       hasUpvoted: !!userVotes[issue._id.toString()],
+      hasDisliked: !!userDislikes[issue._id.toString()],
       userVerification: userVerifications[issue._id.toString()] || null,
     }));
 
@@ -184,6 +200,11 @@ const upvoteIssue = async (req, res) => {
     const issue = await Issue.findById(req.params.id);
     if (!issue) return res.status(404).json({ success: false, message: 'Issue not found.' });
 
+    // ONLY normal users can vote. Moderators/Authorities are neutral.
+    if (req.user.role !== 'user') {
+      return res.status(403).json({ success: false, message: 'Neutral oversight: Moderators cannot vote.' });
+    }
+
     // Toggle vote
     const existing = await Vote.findOne({ user: req.user._id, issue: issue._id });
     if (existing) {
@@ -229,6 +250,69 @@ const upvoteIssue = async (req, res) => {
   }
 };
 
+// POST /api/issues/:id/dislike
+const dislikeIssue = async (req, res) => {
+  try {
+    const { lat, lng } = req.body;
+    const io = req.app.get('io');
+
+    if (!lat || !lng || isNaN(parseFloat(lat)) || isNaN(parseFloat(lng))) {
+      return res.status(400).json({ success: false, message: 'Current location is required for disliking.' });
+    }
+
+    const issue = await Issue.findById(req.params.id);
+    if (!issue) return res.status(404).json({ success: false, message: 'Issue not found.' });
+
+    // PROXIMITY CHECK: Must be within 1km
+    const distance = getDistanceInMeters(
+      parseFloat(lat),
+      parseFloat(lng),
+      issue.location.coordinates[1],
+      issue.location.coordinates[0]
+    );
+
+    if (distance > 1000) {
+      return res.status(403).json({
+        success: false,
+        message: `Too far! You must be within 1km to dislike. (Distance: ${Math.round(distance)}m)`
+      });
+    }
+
+    // ONLY normal users can dislike.
+    if (req.user.role !== 'user') {
+      return res.status(403).json({ success: false, message: 'Neutral oversight: Moderators cannot dislike.' });
+    }
+
+    // Toggle dislike logic
+    const existingDislike = await Dislike.findOne({ user: req.user._id, issue: issue._id });
+    if (existingDislike) {
+      await existingDislike.deleteOne();
+      issue.dislikeCount = Math.max(0, issue.dislikeCount - 1);
+    } else {
+      await Dislike.create({ user: req.user._id, issue: issue._id });
+      issue.dislikeCount += 1;
+    }
+
+    // AUTO-DELETE LOGIC: Delete if dislikes > 20 within 1km
+    if (issue.dislikeCount >= 20) {
+      await issue.deleteOne();
+      io.emit('issue:deleted', { issueId: req.params.id, reason: 'High community dislike threshold reached.' });
+      return res.json({ success: true, message: 'Issue automatically deleted due to community feedback.', deleted: true });
+    }
+
+    await issue.save();
+    
+    io.to(`issue:${issue._id}`).emit('issue:dislike', {
+      issueId: issue._id,
+      dislikeCount: issue.dislikeCount,
+    });
+
+    res.json({ success: true, dislikeCount: issue.dislikeCount });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 // POST /api/issues/:id/verify
 const verifyIssue = async (req, res) => {
   try {
@@ -237,14 +321,10 @@ const verifyIssue = async (req, res) => {
       return res.status(400).json({ success: false, message: 'type must be verify or dispute' });
     }
 
-    if (!lat || !lng) {
+    if (!lat || !lng || isNaN(parseFloat(lat)) || isNaN(parseFloat(lng))) {
       return res.status(400).json({ success: false, message: 'Current location is required for verification.' });
     }
 
-    // Only residents can verify
-    if (req.user.role === 'user') {
-      return res.status(403).json({ success: false, message: 'Only area residents can verify issues.' });
-    }
 
     const io = req.app.get('io');
     const issue = await Issue.findById(req.params.id);
@@ -257,6 +337,11 @@ const verifyIssue = async (req, res) => {
       issue.location.coordinates[1], 
       issue.location.coordinates[0]
     );
+
+    console.log(`[PROXIMITY CHECK]`);
+    console.log(`User Coords: ${lat}, ${lng}`);
+    console.log(`Issue Coords: ${issue.location.coordinates[1]}, ${issue.location.coordinates[0]}`);
+    console.log(`Calculated Distance: ${distance}m`);
 
     if (distance > 1000) {
       return res.status(403).json({ 
@@ -371,22 +456,53 @@ const uploadAfterImage = async (req, res) => {
 // PUT /api/issues/:id/moderate  (mod only)
 const moderatorAction = async (req, res) => {
   try {
-    const { action, note } = req.body;
+    const { action, note, lat, lng } = req.body;
     // action: 'resolve' | 'reject' | 'duplicate' | 'spam' | 'verify' | 'unflag'
     const io = req.app.get('io');
 
     const issue = await Issue.findById(req.params.id).populate('author', 'name');
     if (!issue) return res.status(404).json({ success: false, message: 'Issue not found.' });
 
-    // Moderators can only act on issues in their ward
+    // PROXIMITY CHECK for Moderators/Authorities (10km limit for approval)
+    if (['approve', 'verify'].includes(action)) {
+      if (!lat || !lng) {
+        return res.status(400).json({ success: false, message: 'Moderator location required for validation.' });
+      }
+      const distance = getDistanceInMeters(
+        parseFloat(lat),
+        parseFloat(lng),
+        issue.location.coordinates[1],
+        issue.location.coordinates[0]
+      );
+      if (distance > 10000) {
+        return res.status(403).json({ 
+          success: false, 
+          message: `Operational Limit Exceeded: You must be within 10km to approve this report. (Current: ${(distance/1000).toFixed(1)}km)` 
+        });
+      }
+    }
+
+    // Moderators can act globally for now (or assigned ward check can be re-enabled later)
+    /*
     if (
       req.user.role === 'moderator' &&
       req.user.moderatorWard?.toString() !== issue.ward?.toString()
     ) {
       return res.status(403).json({ success: false, message: 'Not your ward.' });
     }
+    */
+
+    // Role-based permission check
+    if (action === 'resolve' && req.user.role !== 'authority') {
+      return res.status(403).json({ success: false, message: 'Only Resolving Authorities can mark issues as resolved.' });
+    }
+
+    if (action === 'verify' && !['moderator', 'authority'].includes(req.user.role)) {
+      return res.status(403).json({ success: false, message: 'Only Moderators or Authorities can approve posts.' });
+    }
 
     switch (action) {
+
       case 'resolve':
         issue.status = 'resolved';
         issue.resolvedAt = new Date();
@@ -403,6 +519,7 @@ const moderatorAction = async (req, res) => {
         });
         break;
       case 'reject':
+      case 'flag':
         issue.status = 'rejected';
         issue.flagReason = note || 'Rejected by moderator';
         break;
@@ -416,6 +533,7 @@ const moderatorAction = async (req, res) => {
         issue.status = 'rejected';
         break;
       case 'verify':
+      case 'approve':
         issue.status = 'verified';
         issue.flagged = false;
         break;
@@ -498,6 +616,14 @@ const getMyIssues = async (req, res) => {
 };
 
 module.exports = {
-  createIssue, getIssues, getIssue, upvoteIssue, verifyIssue,
-  uploadAfterImage, moderatorAction, approveEscalation, getMyIssues,
+  createIssue,
+  getIssues,
+  getIssue,
+  getMyIssues,
+  upvoteIssue,
+  dislikeIssue,
+  verifyIssue,
+  moderatorAction,
+  approveEscalation,
+  uploadAfterImage,
 };

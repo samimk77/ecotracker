@@ -20,7 +20,17 @@ const verificationSchema = new mongoose.Schema({
 
 verificationSchema.index({ user: 1, issue: 1 }, { unique: true });
 
+// Tracks community dislikes (prevents double-disliking)
+const dislikeSchema = new mongoose.Schema({
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  issue: { type: mongoose.Schema.Types.ObjectId, ref: 'Issue', required: true },
+  createdAt: { type: Date, default: Date.now },
+});
+
+dislikeSchema.index({ user: 1, issue: 1 }, { unique: true });
+
 const Vote = mongoose.model('Vote', voteSchema);
 const Verification = mongoose.model('Verification', verificationSchema);
+const Dislike = mongoose.model('Dislike', dislikeSchema);
 
-module.exports = { Vote, Verification };
+module.exports = { Vote, Verification, Dislike };

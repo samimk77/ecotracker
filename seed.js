@@ -14,12 +14,12 @@ const seedData = async () => {
     console.log('🌿 MongoDB Connected for seeding...');
 
     // Clear existing data for a fresh start
-    await User.deleteMany({ email: /demo/ });
+    await User.deleteMany({ email: { $in: ['user@ecoimpact.com', 'mod@ecoimpact.com', 'authority@ecoimpact.com'] } });
     await Issue.deleteMany({ title: /Demo/ });
-    await Ward.deleteMany({ name: /Demo Ward/ });
-    await Event.deleteMany({ title: /Demo Event/ });
+    await Ward.deleteMany({ name: /Green Valley|Blue River/ });
+    await Event.deleteMany({ title: /Demo/ });
 
-    console.log('🧹 Cleaned up old demo data.');
+    console.log('🧹 Cleaned up existing demo data.');
 
     // 1. Create Demo Wards
     const wards = await Ward.insertMany([
@@ -56,14 +56,13 @@ const seedData = async () => {
     console.log('🏙️ Created demo wards.');
 
     // 2. Create Demo User
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash('password123', salt);
+    const plainPassword = 'password123';
 
     const demoUser = await User.create({
       name: 'Eco Warrior',
-      email: 'demo@ecotrack.com',
-      password: hashedPassword,
-      role: 'resident',
+      email: 'user@ecoimpact.com',
+      password: plainPassword,
+      role: 'user',
       ward: wards[0]._id,
       wardName: wards[0].name,
       location: { type: 'Point', coordinates: [77.5946, 12.9716] },
@@ -77,15 +76,29 @@ const seedData = async () => {
 
     const demoMod = await User.create({
       name: 'Guardian Mod',
-      email: 'mod@ecotrack.com',
-      password: hashedPassword,
+      email: 'mod@ecoimpact.com',
+      password: plainPassword,
       role: 'moderator',
       moderatorWard: wards[0]._id,
       ward: wards[0]._id,
       wardName: wards[0].name
     });
 
-    console.log('👤 Created demo users (demo@ecotrack.com / password123).');
+    const demoAuthority = await User.create({
+      name: 'City Commissioner',
+      email: 'authority@ecoimpact.com',
+      password: plainPassword,
+      role: 'authority',
+      ward: wards[0]._id,
+      wardName: wards[0].name
+    });
+
+
+    console.log('👤 Created demo users:');
+    console.log('   - user@ecoimpact.com / password123');
+    console.log('   - mod@ecoimpact.com / password123');
+    console.log('   - authority@ecoimpact.com / password123');
+
 
     // 3. Create Demo Issues
     const issues = await Issue.insertMany([

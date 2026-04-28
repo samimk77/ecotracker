@@ -48,7 +48,8 @@ router.get('/:id', optionalAuth, async (req, res) => {
     const event = await Event.findById(req.params.id)
       .populate('organizer', 'name avatar')
       .populate('ward', 'name')
-      .populate('funders.user', 'name avatar');
+      .populate('funders.user', 'name avatar')
+      .populate('participants', 'name email avatar');
     if (!event) return res.status(404).json({ success: false, message: 'Event not found.' });
     res.json({ success: true, event });
   } catch (err) {

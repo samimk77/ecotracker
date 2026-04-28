@@ -17,7 +17,8 @@ const userSchema = new mongoose.Schema({
   wardName: { type: String, default: '' },
 
   // Role
-  role: { type: String, enum: ['user', 'resident', 'moderator', 'admin'], default: 'user' },
+  role: { type: String, enum: ['user', 'moderator', 'authority'], default: 'user' },
+
   moderatorWard: { type: mongoose.Schema.Types.ObjectId, ref: 'Ward', default: null },
 
   // Impact stats

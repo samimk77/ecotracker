@@ -3,35 +3,41 @@ const User = require('../models/User');
 const Ward = require('../models/Ward');
 const { resolveWardFromCoords } = require('../services/geocodingService');
 
-const signToken = (id) =>
-  jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE || '7d' });
+const signToken = (id, role) =>
+  jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE || '7d' });
 
 // POST /api/auth/register
 const register = async (req, res) => {
   try {
-    const { name, email, password, lat, lng, organization } = req.body;
+    const { name, email, password, lat, lng, organization, role } = req.body;
 
     const existing = await User.findOne({ email });
     if (existing) {
       return res.status(400).json({ success: false, message: 'Email already registered.' });
     }
 
-    const user = new User({ name, email, password, organization: organization || '' });
+    const user = new User({ 
+      name, 
+      email, 
+      password, 
+      organization: organization || '',
+      role: role || 'user'
+    });
 
-    // If coordinates provided, resolve ward and mark as resident
+    // If coordinates provided, resolve ward
     if (lat && lng) {
       user.location = { type: 'Point', coordinates: [parseFloat(lng), parseFloat(lat)] };
       const wardInfo = await resolveWardFromCoords(parseFloat(lat), parseFloat(lng));
       if (wardInfo) {
         user.ward = wardInfo._id;
         user.wardName = wardInfo.name;
-        user.role = 'resident';
       }
     }
 
+
     await user.save();
 
-    const token = signToken(user._id);
+    const token = signToken(user._id, user.role);
     res.status(201).json({
       success: true,
       token,
@@ -63,7 +69,7 @@ const login = async (req, res) => {
       return res.status(401).json({ success: false, message: 'Invalid credentials.' });
     }
 
-    const token = signToken(user._id);
+    const token = signToken(user._id, user.role);
     res.json({
       success: true,
       token,

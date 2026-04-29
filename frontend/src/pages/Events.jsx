@@ -491,10 +491,10 @@ const DetailModal = ({ event, onClose, onRsvp }) => {
   const pct = Math.round((event.reg / event.total) * 100);
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
       <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)' }} />
       <div style={{
-        position: 'relative', zIndex: 10, width: '100%', maxWidth: 680,
+        position: 'relative', zIndex: 10000, width: '100%', maxWidth: 680,
         background: TOKEN.card, border: `1px solid ${TOKEN.border}`,
         borderRadius: 18, overflow: 'hidden',
         boxShadow: '0 32px 80px rgba(0,0,0,0.7)',
@@ -635,10 +635,10 @@ const CreateModal = ({ onClose, data, setData, onSubmit }) => {
   };
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
       <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)' }} />
       <div style={{
-        position: 'relative', zIndex: 10, width: '100%', maxWidth: 520,
+        position: 'relative', zIndex: 10000, width: '100%', maxWidth: 520,
         background: TOKEN.card, border: `1px solid ${TOKEN.border}`,
         borderRadius: 18, overflow: 'hidden',
       }}>

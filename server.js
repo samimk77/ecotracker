@@ -26,10 +26,21 @@ const reelRoutes = require('./routes/reels');
 const app = express();
 const server = http.createServer(app);
 
+// Clean the FRONTEND_URL to prevent hidden character crashes
+let allowedOrigin = process.env.FRONTEND_URL ? process.env.FRONTEND_URL.trim().replace(/\/$/, '') : 'http://localhost:5173';
+
 // Socket.io setup
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: function (origin, callback) {
+      // Allow the specific frontend URL, or localhost, or bypass if no origin (like postman)
+      if (!origin || origin.includes('localhost') || origin === allowedOrigin) {
+        callback(null, true);
+      } else {
+        // Fallback for debugging on Render
+        callback(null, true); 
+      }
+    },
     methods: ['GET', 'POST'],
     credentials: true,
   },
@@ -40,7 +51,14 @@ app.set('io', io);
 
 // Middleware
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: function (origin, callback) {
+    if (!origin || origin.includes('localhost') || origin === allowedOrigin) {
+      callback(null, true);
+    } else {
+      // Temporarily allow all to prevent Render deployment blocking
+      callback(null, true);
+    }
+  },
   credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));

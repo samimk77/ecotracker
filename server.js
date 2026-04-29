@@ -21,6 +21,7 @@ const leaderboardRoutes = require('./routes/leaderboard');
 const impactWallRoutes = require('./routes/impactWall');
 const notificationRoutes = require('./routes/notifications');
 const telemetryRoutes = require('./routes/telemetry');
+const reelRoutes = require('./routes/reels');
 
 const app = express();
 const server = http.createServer(app);
@@ -60,6 +61,7 @@ app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/impact-wall', impactWallRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/telemetry', telemetryRoutes);
+app.use('/api/reels', reelRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

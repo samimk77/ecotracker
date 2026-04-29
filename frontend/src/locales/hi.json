@@ -1,0 +1,54 @@
+{
+  "nav": {
+    "impact": "प्रभाव",
+    "issues": "मुद्दे",
+    "events": "आयोजन",
+    "spotlight": "सुर्खियां",
+    "login": "लॉगिन करें",
+    "logout": "लॉगआउट",
+    "uplink_stable": "संपर्क_स्थिर"
+  },
+  "home": {
+    "hero_title_1": "क्राउडसोर्स",
+    "hero_title_2": "पर्यावरणीय",
+    "hero_title_3": "प्रभाव",
+    "hero_subtitle": "शहरी स्थिरता के लिए रीयल-टाइम मैपिंग, गेमिफाइड कार्रवाई, और पारदर्शी समाधान।",
+    "cta_primary": "योगदान शुरू करें",
+    "cta_secondary": "लाइव मैप खोजें",
+    "stat_active_users": "सक्रिय उपयोगकर्ता",
+    "stat_issues_resolved": "मुद्दे हल हुए",
+    "stat_wards_mapped": "वार्ड मैप किए गए"
+  },
+  "feed": {
+    "title": "ग्लोबल फीड",
+    "all_wards": "सभी वार्ड",
+    "status_all": "सभी स्थितियां",
+    "status_reported": "रिपोर्ट किया गया",
+    "status_verified": "सत्यापित",
+    "status_resolved": "हल किया गया",
+    "category_all": "सभी श्रेणियां",
+    "btn_upvote": "अपवोट",
+    "btn_verify": "सत्यापित करें"
+  },
+  "dashboard": {
+    "title": "व्यक्तिगत डैशबोर्ड",
+    "tab_overview": "अवलोकन",
+    "tab_issues": "मुद्दे",
+    "tab_rewards": "इनाम",
+    "tab_settings": "सेटिंग्स",
+    "impact_score": "प्रभाव स्कोर",
+    "issues_raised": "उठाए गए मुद्दे",
+    "issues_verified": "सत्यापित मुद्दे",
+    "total_funded": "कुल वित्त पोषित",
+    "btn_explore_feed": "ग्लोबल फीड खोजें"
+  },
+  "rewards": {
+    "title": "इनाम केंद्र",
+    "subtitle": "वास्तविक दुनिया के इनामों के लिए अपने इको-पॉइंट्स का आदान-प्रदान करें।",
+    "balance": "आपका बैलेंस",
+    "redeemed": "रिडीम किया गया",
+    "btn_redeem": "रिडीम करें",
+    "btn_not_enough": "पर्याप्त XP नहीं",
+    "btn_processing": "प्रसंस्करण..."
+  }
+}

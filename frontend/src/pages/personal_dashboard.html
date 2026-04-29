@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CivicPulse — Personal Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+/* ─── THEME TOKENS ───────────────────────────────────────────────────────── */
+:root{
+  --bg:#060a07; --surface:#0b100c; --surface2:#101710; --surface3:#162018;
+  --border:#1a2e1c; --border2:#243627;
+  --text:#e2efe3; --muted:#557560; --muted2:#3d5440;
+  --accent:#39e07a; --accent2:#20c45a; --accent-dim:rgba(57,224,122,.12);
+  --accent-glow:rgba(57,224,122,.25);
+  --red:#ef4444; --orange:#f97316; --yellow:#eab308; --blue:#3b82f6; --purple:#a855f7;
+  --green:#39e07a;
+  font-color-scheme: dark;
+}
+[data-theme="light"]{
+  --bg:#f0f7f1; --surface:#ffffff; --surface2:#e8f4ea; --surface3:#d8eeda;
+  --border:#c2dfc6; --border2:#a8d0ae;
+  --text:#0f2411; --muted:#4a7a52; --muted2:#6b9a72;
+  --accent:#1a9e45; --accent2:#15853a; --accent-dim:rgba(26,158,69,.1);
+  --accent-glow:rgba(26,158,69,.2);
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s;}
+
+/* ─── SCROLLBAR ──────────────────────────────────────────────────────────── */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:var(--surface);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+
+/* ─── SIDEBAR ────────────────────────────────────────────────────────────── */
+.sidebar{
+  position:fixed;left:0;top:0;width:220px;height:100vh;
+  background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;z-index:200;
+}
+.logo{padding:20px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.logo-icon{
+  width:36px;height:36px;border-radius:10px;
+  background:linear-gradient(135deg,#39e07a,#20c45a);
+  display:flex;align-items:center;justify-content:center;font-size:18px;
+  box-shadow:0 0 14px var(--accent-glow);
+}
+.logo-brand{font-size:14px;font-weight:800;letter-spacing:.04em;}
+.logo-sub{font-size:9px;letter-spacing:.2em;color:var(--muted);font-family:'Space Mono',monospace;}
+
+.nav-section{padding:16px 12px 6px;font-size:9px;letter-spacing:.2em;color:var(--muted);font-family:'Space Mono',monospace;}
+.nav-item{
+  display:flex;align-items:center;gap:10px;padding:9px 14px;margin:1px 6px;
+  border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);
+  transition:all .2s;text-decoration:none;
+}
+.nav-item:hover{background:var(--surface2);color:var(--text);}
+.nav-item.active{background:var(--accent-dim);color:var(--accent);border-left:2px solid var(--accent);}
+.nav-dot{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.5;flex-shrink:0;}
+.nav-item.active .nav-dot{opacity:1;}
+.nav-badge{
+  margin-left:auto;background:var(--red);color:#fff;
+  font-size:10px;font-weight:700;border-radius:999px;
+  min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;
+  padding:0 5px;font-family:'Space Mono',monospace;
+}
+.nav-badge.green{background:var(--accent);color:#000;}
+
+.sidebar-footer{
+  margin-top:auto;padding:14px;border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+.user-av{
+  width:32px;height:32px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),#20c45a);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:800;color:#000;flex-shrink:0;position:relative;
+}
+.online-pip{position:absolute;bottom:1px;right:1px;width:8px;height:8px;border-radius:50%;background:var(--accent);border:2px solid var(--surface);}
+.user-name{font-size:12px;font-weight:700;}
+.user-role{font-size:10px;color:var(--accent);font-family:'Space Mono',monospace;}
+
+/* ─── MAIN ───────────────────────────────────────────────────────────────── */
+.main{margin-left:220px;min-height:100vh;display:flex;flex-direction:column;}
+
+/* TOPBAR */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 28px;border-bottom:1px solid var(--border);
+  background:var(--surface);position:sticky;top:0;z-index:100;gap:12px;flex-wrap:wrap;
+}
+.page-title{font-size:16px;font-weight:800;}
+.live-badge{display:flex;align-items:center;gap:5px;font-family:'Space Mono',monospace;font-size:10px;color:var(--accent);}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:livePulse 1.5s infinite;}
+@keyframes livePulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(1.4);}}
+
+.btn{padding:7px 14px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-family:'Syne',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.btn:hover{background:var(--surface2);color:var(--text);}
+.btn-green{background:var(--accent);border-color:var(--accent);color:#000;font-weight:800;}
+.btn-green:hover{background:var(--accent2);border-color:var(--accent2);}
+.btn-red{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3);color:var(--red);}
+.btn-red:hover{background:rgba(239,68,68,.2);}
+.btn-sm{padding:5px 10px;font-size:11px;}
+
+/* TABS */
+.tabs-row{display:flex;gap:2px;background:var(--surface2);border-radius:10px;padding:4px;width:fit-content;}
+.tab{padding:7px 18px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;color:var(--muted);transition:all .2s;}
+.tab:hover{color:var(--text);}
+.tab.active{background:var(--surface);color:var(--accent);box-shadow:0 1px 6px rgba(0,0,0,.4);}
+
+/* CONTENT */
+.content{padding:28px;flex:1;}
+
+/* ─── SECTION LABEL ──────────────────────────────────────────────────────── */
+.section-label{font-size:9px;letter-spacing:.2em;color:var(--muted);font-family:'Space Mono',monospace;margin-bottom:18px;display:flex;align-items:center;gap:8px;}
+.section-label::before{content:'';display:block;width:2px;height:12px;background:var(--accent);border-radius:2px;}
+
+/* ─── CARDS ──────────────────────────────────────────────────────────────── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.card-title{font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;}
+.card-pill{font-size:9px;letter-spacing:.1em;padding:3px 8px;border-radius:5px;font-family:'Space Mono',monospace;background:var(--surface2);color:var(--muted);border:1px solid var(--border2);}
+.card-pill.green{background:rgba(57,224,122,.1);color:var(--accent);border-color:rgba(57,224,122,.2);}
+
+/* ─── PROFILE HERO ───────────────────────────────────────────────────────── */
+.profile-hero{
+  background:var(--surface);border:1px solid var(--border);border-radius:16px;
+  padding:28px;margin-bottom:22px;position:relative;overflow:hidden;
+}
+.profile-hero::before{
+  content:'';position:absolute;top:-100px;right:-100px;
+  width:320px;height:320px;
+  background:radial-gradient(circle,var(--accent-glow),transparent 65%);
+  pointer-events:none;
+}
+.profile-top{display:flex;align-items:center;gap:22px;flex-wrap:wrap;}
+.avatar-wrap{position:relative;flex-shrink:0;}
+.profile-avatar{
+  width:80px;height:80px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),#20c45a);
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;font-weight:800;color:#000;
+  border:2px solid var(--accent);
+  overflow:hidden;cursor:pointer;
+}
+.profile-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.avatar-edit-overlay{
+  position:absolute;inset:0;border-radius:50%;
+  background:rgba(0,0,0,.55);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:opacity .2s;cursor:pointer;
+  font-size:20px;
+}
+.avatar-wrap:hover .avatar-edit-overlay{opacity:1;}
+.avatar-input{display:none;}
+.avatar-remove{
+  position:absolute;top:-4px;right:-4px;
+  width:20px;height:20px;border-radius:50%;
+  background:var(--red);color:#fff;border:2px solid var(--surface);
+  display:none;align-items:center;justify-content:center;font-size:10px;cursor:pointer;
+}
+.avatar-remove.show{display:flex;}
+.online-ring{position:absolute;bottom:3px;right:3px;width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid var(--surface);}
+
+.profile-info{flex:1;min-width:200px;}
+.profile-name{font-size:24px;font-weight:800;letter-spacing:-.02em;margin-bottom:6px;}
+.profile-meta-row{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:10px;}
+.meta-item{font-size:12px;color:var(--muted);font-family:'Space Mono',monospace;display:flex;align-items:center;gap:5px;}
+.profile-tags{display:flex;gap:7px;flex-wrap:wrap;}
+.ptag{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;font-family:'Space Mono',monospace;}
+.ptag-mod{background:rgba(59,130,246,.15);color:var(--blue);border:1px solid rgba(59,130,246,.2);}
+.ptag-verified{background:rgba(57,224,122,.15);color:var(--accent);border:1px solid rgba(57,224,122,.2);}
+.ptag-unverified{background:rgba(234,179,8,.15);color:var(--yellow);border:1px solid rgba(234,179,8,.2);}
+
+/* XP bar */
+.xp-block{background:var(--surface2);border-radius:10px;padding:16px 18px;margin-top:18px;border:1px solid var(--border);}
+.xp-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.xp-level{font-size:11px;font-family:'Space Mono',monospace;color:var(--accent);font-weight:700;}
+.xp-pts{font-size:12px;font-family:'Space Mono',monospace;color:var(--muted);}
+.xp-track{height:6px;background:var(--surface3);border-radius:999px;overflow:hidden;}
+.xp-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--accent),#20c45a);transition:width 1.4s cubic-bezier(.2,1,.3,1);}
+.xp-sub{font-size:10px;color:var(--muted);font-family:'Space Mono',monospace;margin-top:6px;}
+
+/* STAT STRIP */
+.stat-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:22px;}
+.stat-cell{padding:16px;text-align:center;border-right:1px solid var(--border);background:var(--surface);}
+.stat-cell:last-child{border-right:none;}
+.stat-val{font-size:24px;font-weight:800;letter-spacing:-.02em;}
+.stat-lbl{font-size:9px;color:var(--muted);font-family:'Space Mono',monospace;letter-spacing:.12em;margin-top:3px;}
+
+/* ─── RECENT ISSUES ──────────────────────────────────────────────────────── */
+.issue-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:padding .15s;}
+.issue-row:last-child{border-bottom:none;}
+.issue-row:hover{padding-left:5px;}
+.issue-num{font-size:11px;font-family:'Space Mono',monospace;color:var(--muted);min-width:42px;}
+.issue-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.issue-info{flex:1;}
+.issue-title{font-size:12px;font-weight:600;margin-bottom:2px;}
+.issue-sub{font-size:10px;color:var(--muted);font-family:'Space Mono',monospace;}
+.issue-age{font-size:10px;font-family:'Space Mono',monospace;color:var(--muted);text-align:right;min-width:36px;}
+
+.pill{padding:3px 8px;border-radius:5px;font-size:10px;font-weight:700;font-family:'Space Mono',monospace;}
+.pill-open{background:rgba(57,224,122,.12);color:var(--accent);}
+.pill-resolved{background:rgba(34,197,94,.12);color:#22c55e;}
+.pill-escalated{background:rgba(239,68,68,.12);color:var(--red);}
+.pill-progress{background:rgba(234,179,8,.12);color:var(--yellow);}
+
+/* ─── ACHIEVEMENTS ───────────────────────────────────────────────────────── */
+.badges-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.badge-card{background:var(--surface2);border-radius:10px;padding:14px;text-align:center;border:1px solid var(--border2);position:relative;overflow:hidden;}
+.badge-card.earned{border-color:rgba(57,224,122,.3);}
+.badge-card.earned::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 0,rgba(57,224,122,.08),transparent 70%);}
+.badge-card.locked{opacity:.38;filter:grayscale(.8);}
+.badge-emoji{font-size:22px;margin-bottom:7px;}
+.badge-name{font-size:10px;font-weight:700;margin-bottom:2px;}
+.badge-desc{font-size:9px;color:var(--muted);font-family:'Space Mono',monospace;line-height:1.4;}
+.earned-check{position:absolute;top:6px;right:6px;width:14px;height:14px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:8px;color:#000;font-weight:800;}
+
+/* ─── ISSUES TABLE (My Issues tab) ──────────────────────────────────────── */
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+thead th{font-size:10px;font-family:'Space Mono',monospace;letter-spacing:.1em;color:var(--muted);text-align:left;padding:0 12px 12px;border-bottom:1px solid var(--border);}
+tbody tr{cursor:pointer;transition:background .15s;}
+tbody tr:hover td{background:var(--surface2);}
+tbody td{padding:12px;border-bottom:1px solid var(--border);font-size:12px;vertical-align:middle;}
+tbody tr:last-child td{border-bottom:none;}
+.td-mono{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);}
+.td-xp{font-family:'Space Mono',monospace;color:var(--accent);}
+
+.pagination{display:flex;align-items:center;justify-content:space-between;margin-top:16px;font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);}
+.pg-btns{display:flex;gap:6px;}
+.pg-btn{padding:5px 11px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);font-family:'Space Mono',monospace;font-size:11px;cursor:pointer;transition:all .2s;}
+.pg-btn:hover{border-color:var(--accent);color:var(--accent);}
+.pg-btn.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);}
+.pg-btn:disabled{opacity:.3;cursor:not-allowed;}
+
+/* Filter bar */
+.filter-bar{display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
+.filter-bar select{background:var(--surface2);border:1px solid var(--border2);color:var(--text);padding:8px 12px;border-radius:8px;font-family:'Syne',sans-serif;font-size:12px;font-weight:600;cursor:pointer;outline:none;}
+.search-wrap{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:7px 12px;flex:1;min-width:180px;max-width:320px;}
+.search-wrap input{background:none;border:none;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;width:100%;}
+.search-wrap input::placeholder{color:var(--muted);}
+
+/* ─── SETTINGS ───────────────────────────────────────────────────────────── */
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--border);}
+.settings-row:last-of-type{border-bottom:none;}
+.settings-lbl{font-size:13px;font-weight:600;}
+.settings-sub{font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;margin-top:2px;}
+
+/* Toggle */
+.toggle{width:40px;height:22px;border-radius:999px;background:var(--surface3);border:1px solid var(--border2);cursor:pointer;position:relative;transition:all .25s;flex-shrink:0;}
+.toggle.on{background:var(--accent);border-color:var(--accent);}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:left .25s;}
+.toggle.on::after{left:21px;}
+[data-theme="light"] .toggle.on::after{background:#000;}
+
+/* Form inputs in settings */
+.form-row{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+.form-lbl{font-size:10px;font-family:'Space Mono',monospace;letter-spacing:.1em;color:var(--muted);}
+.form-input{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'Syne',sans-serif;font-size:13px;outline:none;width:100%;transition:border-color .2s;}
+.form-input:focus{border-color:var(--accent);}
+.form-input::placeholder{color:var(--muted2);}
+.verify-row{display:flex;gap:8px;align-items:center;}
+.verify-badge{font-size:10px;font-family:'Space Mono',monospace;padding:4px 9px;border-radius:5px;}
+.verified-ok{background:rgba(57,224,122,.12);color:var(--accent);border:1px solid rgba(57,224,122,.25);}
+.unverified-warn{background:rgba(234,179,8,.12);color:var(--yellow);border:1px solid rgba(234,179,8,.25);}
+
+/* Danger zone */
+.danger-zone{border:1px solid rgba(239,68,68,.25);border-radius:12px;padding:20px;background:rgba(239,68,68,.04);}
+.danger-title{font-size:12px;font-family:'Space Mono',monospace;letter-spacing:.1em;color:var(--red);margin-bottom:14px;}
+
+/* ─── TOAST ──────────────────────────────────────────────────────────────── */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--accent);color:#000;font-weight:800;font-size:13px;padding:12px 20px;border-radius:10px;z-index:999;transform:translateY(80px);opacity:0;transition:all .3s;pointer-events:none;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.warn{background:var(--orange);color:#fff;}
+.toast.danger{background:var(--red);color:#fff;}
+
+/* ─── MODAL ──────────────────────────────────────────────────────────────── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:16px;width:100%;max-width:440px;padding:28px;transform:scale(.95) translateY(8px);transition:all .25s;}
+.modal-overlay.open .modal{transform:none;}
+.modal-title{font-size:18px;font-weight:800;margin-bottom:8px;}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:22px;line-height:1.6;}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;}
+
+/* ─── ANIMATIONS ─────────────────────────────────────────────────────────── */
+.fade-up{opacity:0;transform:translateY(14px);animation:fadeUp .45s forwards;}
+@keyframes fadeUp{to{opacity:1;transform:none;}}
+.d1{animation-delay:.04s;}.d2{animation-delay:.09s;}.d3{animation-delay:.14s;}.d4{animation-delay:.19s;}
+</style>
+</head>
+<body>
+
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">🌿</div>
+    <div>
+      <div class="logo-brand">CivicPulse</div>
+      <div class="logo-sub">MISSION CONTROL</div>
+    </div>
+  </div>
+
+  <div class="nav-section">OVERVIEW</div>
+  <a class="nav-item" href="#"><span class="nav-dot"></span>Dashboard</a>
+  <a class="nav-item" href="#"><span class="nav-dot"></span>Live Map</a>
+
+  <div class="nav-section">ISSUES</div>
+  <a class="nav-item" href="#"><span class="nav-dot"></span>All Issues<span class="nav-badge">12</span></a>
+
+  <div class="nav-section">ANALYTICS</div>
+  <a class="nav-item" href="#"><span class="nav-dot"></span>Ward Reports</a>
+
+  <div class="nav-section">COMMUNITY</div>
+  <a class="nav-item" href="#"><span class="nav-dot"></span>Events<span class="nav-badge green">3</span></a>
+
+  <div class="nav-section">MY ACCOUNT</div>
+  <a class="nav-item active" href="#"><span class="nav-dot"></span>Personal Profile</a>
+
+  <div class="sidebar-footer">
+    <div class="user-av">RK<div class="online-pip"></div></div>
+    <div>
+      <div class="user-name">Rohan Kumar</div>
+      <div class="user-role">✅ Verified</div>
+    </div>
+  </div>
+</aside>
+
+<!-- ═══ MAIN ═══ -->
+<main class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+      <div class="page-title">Personal Dashboard</div>
+      <div class="tabs-row">
+        <div class="tab active" onclick="switchTab(this,'overview')">Overview</div>
+        <div class="tab" onclick="switchTab(this,'issues')">My Issues</div>
+        <div class="tab" onclick="switchTab(this,'settings')">Settings</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="live-badge"><div class="live-dot"></div><span id="liveClock" style="font-family:'Space Mono',monospace;font-size:11px;"></span></div>
+      <button class="btn btn-sm btn-green" onclick="openReportModal()">＋ Report Issue</button>
+    </div>
+  </div>
+
+  <!-- ═══ CONTENT ═══ -->
+  <div class="content">
+
+    <!-- ──────────────────── OVERVIEW TAB ──────────────────── -->
+    <div id="tab-overview">
+      <div class="section-label">PERSONAL OVERVIEW — ROHAN KUMAR</div>
+
+      <!-- PROFILE HERO -->
+      <div class="profile-hero fade-up d1" style="margin-bottom:22px;">
+        <div class="profile-top">
+          <!-- Avatar -->
+          <div class="avatar-wrap">
+            <div class="profile-avatar" id="avatarDisplay" onclick="triggerAvatarUpload()">
+              RK
+              <div class="avatar-edit-overlay">📷</div>
+            </div>
+            <div class="online-ring"></div>
+            <div class="avatar-remove" id="avatarRemoveBtn" onclick="removeAvatar()">✕</div>
+            <input type="file" id="avatarInput" class="avatar-input" accept="image/*" onchange="handleAvatarUpload(event)"/>
+          </div>
+
+          <!-- Info -->
+          <div class="profile-info">
+            <div class="profile-name">Rohan Kumar</div>
+            <div class="profile-meta-row">
+              <span class="meta-item">📍 Ward 84, Koramangala, Bengaluru</span>
+              <span class="meta-item">✉️ rohan.kumar@civicpulse.in</span>
+              <span class="meta-item">📅 Joined March 2023</span>
+            </div>
+            <div class="profile-tags">
+              <span class="ptag ptag-mod">🛡 Moderator</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- STATS STRIP -->
+      <div class="stat-strip fade-up d2" style="grid-template-columns:1fr 1fr;">
+        <div class="stat-cell">
+          <div class="stat-val" style="color:var(--accent)">47</div>
+          <div class="stat-lbl">ISSUES REPORTED</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-val" style="color:#22c55e">38</div>
+          <div class="stat-lbl">RESOLVED</div>
+        </div>
+      </div>
+
+      <!-- RECENT ISSUES -->
+      <div class="fade-up d3">
+
+        <!-- RECENT ISSUES -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📋 My Recent Issues</div>
+            <button class="btn btn-sm" onclick="switchTabByName('issues')">View All →</button>
+          </div>
+          <div class="issue-row" onclick="">
+            <span class="issue-num">#1094</span>
+            <span class="issue-dot" style="background:var(--red)"></span>
+            <div class="issue-info">
+              <div class="issue-title">Drain overflow — 4th Block</div>
+              <div class="issue-sub">Ward 84 · Sewage</div>
+            </div>
+            <span class="pill pill-escalated">ESCALATED</span>
+            <span class="issue-age">6h</span>
+          </div>
+          <div class="issue-row">
+            <span class="issue-num">#1089</span>
+            <span class="issue-dot" style="background:var(--accent)"></span>
+            <div class="issue-info">
+              <div class="issue-title">Open manhole — 100 Feet Road</div>
+              <div class="issue-sub">Ward 84 · Roads</div>
+            </div>
+            <span class="pill pill-open">OPEN</span>
+            <span class="issue-age">1d</span>
+          </div>
+          <div class="issue-row">
+            <span class="issue-num">#1078</span>
+            <span class="issue-dot" style="background:var(--yellow)"></span>
+            <div class="issue-info">
+              <div class="issue-title">Garbage pile — KFC Junction</div>
+              <div class="issue-sub">Ward 84 · Garbage</div>
+            </div>
+            <span class="pill pill-progress">IN PROGRESS</span>
+            <span class="issue-age">2d</span>
+          </div>
+          <div class="issue-row">
+            <span class="issue-num">#1059</span>
+            <span class="issue-dot" style="background:#22c55e"></span>
+            <div class="issue-info">
+              <div class="issue-title">Broken streetlight — Sony World</div>
+              <div class="issue-sub">Ward 84 · Lighting</div>
+            </div>
+            <span class="pill pill-resolved">RESOLVED</span>
+            <span class="issue-age">5d</span>
+          </div>
+          <div class="issue-row">
+            <span class="issue-num">#1048</span>
+            <span class="issue-dot" style="background:#22c55e"></span>
+            <div class="issue-info">
+              <div class="issue-title">Water logging — BDA Complex</div>
+              <div class="issue-sub">Ward 84 · Flooding</div>
+            </div>
+            <span class="pill pill-resolved">RESOLVED</span>
+            <span class="issue-age">8d</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div><!-- /tab-overview -->
+
+    <!-- ──────────────────── MY ISSUES TAB ──────────────────── -->
+    <div id="tab-issues" style="display:none;">
+      <div class="section-label">MY ISSUES — ALL TIME</div>
+
+      <div class="filter-bar">
+        <div class="search-wrap">
+          <span style="color:var(--muted);font-size:13px;">🔍</span>
+          <input type="text" id="issueSearch" placeholder="Search issues…" oninput="renderIssues()"/>
+        </div>
+        <select id="statusFilter" onchange="renderIssues()" style="background:var(--surface2);border:1px solid var(--border2);color:var(--text);padding:8px 12px;border-radius:8px;font-family:'Syne',sans-serif;font-size:12px;font-weight:600;cursor:pointer;outline:none;">
+          <option value="">All Statuses</option>
+          <option value="open">Open</option>
+          <option value="progress">In Progress</option>
+          <option value="resolved">Resolved</option>
+          <option value="escalated">Escalated</option>
+        </select>
+        <select id="catFilter" onchange="renderIssues()" style="background:var(--surface2);border:1px solid var(--border2);color:var(--text);padding:8px 12px;border-radius:8px;font-family:'Syne',sans-serif;font-size:12px;font-weight:600;cursor:pointer;outline:none;">
+          <option value="">All Categories</option>
+          <option value="Sewage">Sewage</option>
+          <option value="Roads">Roads</option>
+          <option value="Garbage">Garbage</option>
+          <option value="Lighting">Lighting</option>
+          <option value="Flooding">Flooding</option>
+          <option value="Air Pollution">Air Pollution</option>
+          <option value="Other">Other</option>
+        </select>
+        <span id="issueCount" style="font-size:11px;font-family:'Space Mono',monospace;color:var(--muted);margin-left:auto;"></span>
+      </div>
+
+      <div class="card fade-up">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#ID</th>
+                <th>ISSUE</th>
+                <th>CATEGORY</th>
+                <th>STATUS</th>
+                <th>REPORTED</th>
+                <th>XP EARNED</th>
+              </tr>
+            </thead>
+            <tbody id="issuesBody"></tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <span id="pgInfo"></span>
+          <div class="pg-btns" id="pgBtns"></div>
+        </div>
+      </div>
+    </div><!-- /tab-issues -->
+
+    <!-- ──────────────────── SETTINGS TAB ──────────────────── -->
+    <div id="tab-settings" style="display:none;">
+      <div class="section-label">ACCOUNT SETTINGS</div>
+
+      <div class="settings-grid fade-up">
+
+        <!-- ── Profile ── -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">👤 Profile</div>
+          </div>
+          <div class="form-row">
+            <label class="form-lbl">DISPLAY NAME</label>
+            <input type="text" class="form-input" id="settingName" value="Rohan Kumar" placeholder="Your full name"/>
+          </div>
+          <div class="form-row">
+            <label class="form-lbl">EMAIL ADDRESS</label>
+            <div class="verify-row">
+              <input type="email" class="form-input" id="settingEmail" value="rohan.kumar@civicpulse.in" style="flex:1;" placeholder="your@email.com"/>
+              <span class="verify-badge verified-ok" id="emailVerifiedBadge">✅ Verified</span>
+            </div>
+            <button class="btn btn-sm" id="verifyEmailBtn" onclick="sendVerification()" style="margin-top:6px;display:none;">📧 Send Verification Link</button>
+          </div>
+          <div class="form-row">
+            <label class="form-lbl">PRIMARY WARD</label>
+            <select class="form-input" style="cursor:pointer;">
+              <option>Ward 84 — Koramangala</option>
+              <option>Ward 29 — Silk Board</option>
+              <option>Ward 45 — JP Nagar</option>
+            </select>
+          </div>
+          <button class="btn btn-green" style="width:100%;padding:10px;margin-top:4px;" onclick="saveProfile()">Save Changes</button>
+        </div>
+
+        <!-- ── App Preferences ── -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">⚙️ App Preferences</div>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-lbl">Dark Mode</div>
+              <div class="settings-sub">Toggle light / dark theme permanently</div>
+            </div>
+            <div class="toggle on" id="darkModeToggle" onclick="toggleDarkMode()"></div>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-lbl">Live Feed Auto-refresh</div>
+              <div class="settings-sub">Refresh activity feed every 30s</div>
+            </div>
+            <div class="toggle on" onclick="this.classList.toggle('on');savePref(this,'auto_refresh')"></div>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-lbl">Sound Alerts</div>
+              <div class="settings-sub">Audio notification for critical issues</div>
+            </div>
+            <div class="toggle" onclick="this.classList.toggle('on');savePref(this,'sound')"></div>
+          </div>
+        </div>
+
+        <!-- ── Privacy & Danger ── -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🔒 Privacy &amp; Account</div>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-lbl">Public Profile</div>
+              <div class="settings-sub">Visible to other CivicPulse users</div>
+            </div>
+            <div class="toggle on" id="publicProfileToggle" onclick="togglePublicProfile()"></div>
+          </div>
+          <div id="publicProfileStatus" style="font-size:11px;font-family:'Space Mono',monospace;color:var(--accent);padding:6px 0;border-bottom:1px solid var(--border);">🌍 Profile is PUBLIC</div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-lbl">Show on Leaderboard</div>
+              <div class="settings-sub">Display name in ward rankings</div>
+            </div>
+            <div class="toggle on" onclick="this.classList.toggle('on');savePref(this,'leaderboard')"></div>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-lbl">Anonymous Reporting</div>
+              <div class="settings-sub">Hide identity on public reports</div>
+            </div>
+            <div class="toggle" onclick="this.classList.toggle('on');savePref(this,'anonymous')"></div>
+          </div>
+
+          <div class="danger-zone" style="margin-top:16px;">
+            <div class="danger-title">⚠ DANGER ZONE</div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6;">Deleting your account is permanent and cannot be undone. All your reports, XP, and badges will be removed.</div>
+            <button class="btn btn-red" style="width:100%;padding:10px;" onclick="openDeleteModal()">🗑 Delete My Account Permanently</button>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /tab-settings -->
+
+  </div><!-- /content -->
+</main>
+
+<!-- ═══ DELETE CONFIRM MODAL ═══ -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal">
+    <div style="font-size:36px;margin-bottom:12px;">⚠️</div>
+    <div class="modal-title">Delete Account Permanently?</div>
+    <div class="modal-sub">This will erase your profile, all 47 reported issues, 3,600 XP, 8 badges, and your entire activity history. <strong>This cannot be undone.</strong></div>
+    <div class="form-row">
+      <label class="form-lbl">TYPE "DELETE" TO CONFIRM</label>
+      <input type="text" class="form-input" id="deleteConfirmInput" placeholder="DELETE" oninput="checkDeleteConfirm()"/>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('deleteModal')">Cancel</button>
+      <button class="btn btn-red" id="deleteConfirmBtn" disabled onclick="confirmDelete()">Delete Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ REPORT ISSUE MODAL ═══ -->
+<div class="modal-overlay" id="reportModal">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-title">＋ Report a Civic Issue</div>
+    <div class="modal-sub" style="margin-bottom:16px;">Quick-report a problem in your ward. Our team will verify and escalate.</div>
+    <div class="form-row">
+      <label class="form-lbl">ISSUE TITLE</label>
+      <input type="text" class="form-input" placeholder="e.g. Broken streetlight near metro station"/>
+    </div>
+    <div class="form-row">
+      <label class="form-lbl">CATEGORY</label>
+      <select class="form-input" style="cursor:pointer;">
+        <option>Roads</option><option>Sewage</option><option>Garbage</option>
+        <option>Flooding</option><option>Lighting</option><option>Air Pollution</option><option>Other</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label class="form-lbl">LOCATION / LANDMARK</label>
+      <input type="text" class="form-input" placeholder="Street / landmark near Ward 84"/>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('reportModal')">Cancel</button>
+      <button class="btn btn-green" onclick="submitReport()">Submit Report</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ── Clock ── */
+function updateClock(){
+  document.getElementById('liveClock').textContent =
+    new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+setInterval(updateClock,1000); updateClock();
+
+/* ── Tab switching ── */
+function switchTab(el,name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  ['overview','issues','settings'].forEach(t=>{
+    const el2=document.getElementById('tab-'+t);
+    if(el2) el2.style.display = t===name?'block':'none';
+  });
+  if(name==='issues') renderIssues();
+}
+function switchTabByName(name){
+  const tabs=document.querySelectorAll('.tab');
+  const names=['overview','issues','settings'];
+  tabs.forEach((t,i)=>t.classList.toggle('active',names[i]===name));
+  names.forEach(t=>{
+    const el2=document.getElementById('tab-'+t);
+    if(el2) el2.style.display = t===name?'block':'none';
+  });
+  if(name==='issues') renderIssues();
+}
+
+/* ── XP bar animation ── */
+window.addEventListener('load',()=>{
+  loadPrefs();
+});
+
+/* ── AVATAR ── */
+function triggerAvatarUpload(){ document.getElementById('avatarInput').click(); }
+function handleAvatarUpload(e){
+  const file=e.target.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    const disp=document.getElementById('avatarDisplay');
+    disp.innerHTML=`<img src="${ev.target.result}" alt="avatar"/><div class="avatar-edit-overlay" onclick="triggerAvatarUpload()">📷</div>`;
+    document.getElementById('avatarRemoveBtn').classList.add('show');
+    showToast('📸 Profile photo updated!');
+  };
+  reader.readAsDataURL(file);
+}
+function removeAvatar(){
+  const disp=document.getElementById('avatarDisplay');
+  disp.innerHTML='RK<div class="avatar-edit-overlay" onclick="triggerAvatarUpload()">📷</div>';
+  document.getElementById('avatarRemoveBtn').classList.remove('show');
+  document.getElementById('avatarInput').value='';
+  showToast('🗑 Profile photo removed');
+}
+
+/* ── ISSUES DATA ── */
+const allIssues=[
+  {id:'#1094',title:'Drain overflow — 4th Block Koramangala',cat:'Sewage',status:'escalated',label:'ESCALATED',age:'6h ago',xp:'+80'},
+  {id:'#1089',title:'Open manhole — 100 Feet Road',cat:'Roads',status:'open',label:'OPEN',age:'1d ago',xp:'+60'},
+  {id:'#1078',title:'Garbage pile near KFC Junction',cat:'Garbage',status:'progress',label:'IN PROGRESS',age:'2d ago',xp:'+50'},
+  {id:'#1065',title:'Illegal banner hoarding — Jyoti Nivas',cat:'Other',status:'open',label:'OPEN',age:'3d ago',xp:'+40'},
+  {id:'#1059',title:'Broken street light — Sony World Signal',cat:'Lighting',status:'resolved',label:'RESOLVED',age:'5d ago',xp:'+60'},
+  {id:'#1048',title:'Water logging at BDA Complex',cat:'Flooding',status:'resolved',label:'RESOLVED',age:'8d ago',xp:'+60'},
+  {id:'#1032',title:'Air pollution near bus depot',cat:'Air Pollution',status:'resolved',label:'RESOLVED',age:'12d ago',xp:'+50'},
+  {id:'#1021',title:'Pothole on 5th Main Road',cat:'Roads',status:'resolved',label:'RESOLVED',age:'15d ago',xp:'+40'},
+  {id:'#1004',title:'Sewage overflow — HSR Layout',cat:'Sewage',status:'resolved',label:'RESOLVED',age:'20d ago',xp:'+80'},
+  {id:'#0988',title:'Missing manhole cover — 80 Feet Road',cat:'Roads',status:'resolved',label:'RESOLVED',age:'24d ago',xp:'+60'},
+  {id:'#0971',title:'Stray dog menace — 6th Main',cat:'Other',status:'resolved',label:'RESOLVED',age:'28d ago',xp:'+30'},
+  {id:'#0952',title:'Garbage burning — near school',cat:'Air Pollution',status:'resolved',label:'RESOLVED',age:'35d ago',xp:'+50'},
+  {id:'#0938',title:'Overflowing bin — park entrance',cat:'Garbage',status:'resolved',label:'RESOLVED',age:'42d ago',xp:'+40'},
+  {id:'#0920',title:'Broken footpath tiles — Indiranagar',cat:'Roads',status:'resolved',label:'RESOLVED',age:'50d ago',xp:'+40'},
+  {id:'#0901',title:'Water supply cut — Ward 84 sector 3',cat:'Other',status:'resolved',label:'RESOLVED',age:'58d ago',xp:'+30'},
+];
+
+let currentPage=1;
+const ISSUES_PER_PAGE=10;
+
+function getFiltered(){
+  const q=document.getElementById('issueSearch').value.toLowerCase();
+  const st=document.getElementById('statusFilter').value;
+  const cat=document.getElementById('catFilter').value;
+  return allIssues.filter(i=>{
+    const matchQ=!q||(i.title.toLowerCase().includes(q)||i.id.includes(q)||i.cat.toLowerCase().includes(q));
+    const matchSt=!st||(i.status===st);
+    const matchCat=!cat||(i.cat===cat);
+    return matchQ&&matchSt&&matchCat;
+  });
+}
+
+function renderIssues(){
+  const filtered=getFiltered();
+  const total=filtered.length;
+  const totalPages=Math.ceil(total/ISSUES_PER_PAGE)||1;
+  if(currentPage>totalPages) currentPage=1;
+  const start=(currentPage-1)*ISSUES_PER_PAGE;
+  const page=filtered.slice(start,start+ISSUES_PER_PAGE);
+
+  document.getElementById('issueCount').textContent=`${total} issue${total!==1?'s':''}`;
+
+  const pillClass={open:'pill-open',resolved:'pill-resolved',escalated:'pill-escalated',progress:'pill-progress'};
+  const dotColor={open:'var(--accent)',resolved:'#22c55e',escalated:'var(--red)',progress:'var(--yellow)'};
+
+  document.getElementById('issuesBody').innerHTML=page.map(iss=>`
+    <tr>
+      <td class="td-mono">${iss.id}</td>
+      <td style="font-weight:600;max-width:280px;">${iss.title}</td>
+      <td style="color:var(--muted);font-size:11px;">${iss.cat}</td>
+      <td><span class="pill ${pillClass[iss.status]||''}">${iss.label}</span></td>
+      <td class="td-mono">${iss.age}</td>
+      <td class="td-xp td-mono">${iss.xp}</td>
+    </tr>
+  `).join('');
+
+  document.getElementById('pgInfo').textContent=`${start+1}–${Math.min(start+ISSUES_PER_PAGE,total)} of ${total}`;
+
+  // Pagination buttons
+  let pgHtml='';
+  pgHtml+=`<button class="pg-btn" onclick="gotoPage(${currentPage-1})" ${currentPage===1?'disabled':''}>← Prev</button>`;
+  for(let p=1;p<=totalPages;p++){
+    pgHtml+=`<button class="pg-btn${p===currentPage?' active':''}" onclick="gotoPage(${p})">${p}</button>`;
+  }
+  pgHtml+=`<button class="pg-btn" onclick="gotoPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>Next →</button>`;
+  document.getElementById('pgBtns').innerHTML=pgHtml;
+}
+
+function gotoPage(p){
+  const total=Math.ceil(getFiltered().length/ISSUES_PER_PAGE)||1;
+  currentPage=Math.max(1,Math.min(p,total));
+  renderIssues();
+}
+
+/* ── DARK MODE (persistent) ── */
+function toggleDarkMode(){
+  const html=document.documentElement;
+  const isLight=html.getAttribute('data-theme')==='light';
+  html.setAttribute('data-theme', isLight?'dark':'light');
+  localStorage.setItem('civicpulse_theme', isLight?'dark':'light');
+  const tog=document.getElementById('darkModeToggle');
+  tog.classList.toggle('on',!isLight);
+  showToast(isLight?'🌙 Dark mode enabled':'☀️ Light mode enabled');
+}
+
+/* ── PUBLIC / PRIVATE PROFILE ── */
+function togglePublicProfile(){
+  const tog=document.getElementById('publicProfileToggle');
+  tog.classList.toggle('on');
+  const isPublic=tog.classList.contains('on');
+  const status=document.getElementById('publicProfileStatus');
+  status.textContent=isPublic?'🌍 Profile is PUBLIC':'🔒 Profile is PRIVATE';
+  status.style.color=isPublic?'var(--accent)':'var(--yellow)';
+  localStorage.setItem('civicpulse_public_profile',isPublic?'1':'0');
+  showToast(isPublic?'🌍 Profile set to Public':'🔒 Profile set to Private');
+}
+
+/* ── PREFS ── */
+function savePref(el,key){
+  localStorage.setItem('pref_'+key, el.classList.contains('on')?'1':'0');
+}
+function loadPrefs(){
+  const theme=localStorage.getItem('civicpulse_theme')||'dark';
+  document.documentElement.setAttribute('data-theme',theme);
+  const dmTog=document.getElementById('darkModeToggle');
+  dmTog.classList.toggle('on',theme==='dark');
+
+  const isPublic=localStorage.getItem('civicpulse_public_profile')!=='0';
+  if(!isPublic){
+    document.getElementById('publicProfileToggle').classList.remove('on');
+    document.getElementById('publicProfileStatus').textContent='🔒 Profile is PRIVATE';
+    document.getElementById('publicProfileStatus').style.color='var(--yellow)';
+  }
+}
+
+/* ── SAVE PROFILE ── */
+function saveProfile(){
+  const name=document.getElementById('settingName').value.trim();
+  const email=document.getElementById('settingEmail').value.trim();
+  if(!name){showToast('⚠ Name cannot be empty','warn');return;}
+  if(!email.includes('@')){showToast('⚠ Invalid email address','warn');return;}
+  document.querySelector('.user-name').textContent=name;
+  document.querySelector('.profile-name').textContent=name;
+  showToast('✅ Profile saved successfully!');
+}
+
+/* ── VERIFY EMAIL ── */
+document.getElementById('settingEmail').addEventListener('input',function(){
+  const original='rohan.kumar@civicpulse.in';
+  const changed=this.value!==original;
+  document.getElementById('verifyEmailBtn').style.display=changed?'block':'none';
+  document.getElementById('emailVerifiedBadge').textContent=changed?'⚠ Unverified':'✅ Verified';
+  document.getElementById('emailVerifiedBadge').className='verify-badge '+(changed?'unverified-warn':'verified-ok');
+});
+function sendVerification(){
+  showToast('📧 Verification link sent to your email!');
+}
+
+/* ── REPORT MODAL ── */
+function openReportModal(){ document.getElementById('reportModal').classList.add('open'); }
+function submitReport(){
+  closeModal('reportModal');
+  showToast('✅ Issue reported! You earned +60 XP');
+}
+
+/* ── DELETE MODAL ── */
+function openDeleteModal(){ document.getElementById('deleteModal').classList.add('open'); }
+function closeModal(id){
+  document.getElementById(id).classList.remove('open');
+  if(id==='deleteModal') document.getElementById('deleteConfirmInput').value='';
+  checkDeleteConfirm();
+}
+function checkDeleteConfirm(){
+  const val=document.getElementById('deleteConfirmInput').value;
+  document.getElementById('deleteConfirmBtn').disabled=(val!=='DELETE');
+}
+function confirmDelete(){
+  closeModal('deleteModal');
+  showToast('🗑 Account permanently deleted.','danger');
+  setTimeout(()=>{ document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#060a07;color:#557560;font-family:Space Mono,monospace;font-size:14px;">Account deleted. Redirecting…</div>'; },2000);
+}
+
+/* ── MODAL CLOSE ON OVERLAY ── */
+document.querySelectorAll('.modal-overlay').forEach(el=>{
+  el.addEventListener('click',function(e){ if(e.target===this) closeModal(this.id); });
+});
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') document.querySelectorAll('.modal-overlay').forEach(m=>closeModal(m.id)); });
+
+/* ── TOAST ── */
+function showToast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast show'+(type?' '+type:'');
+  clearTimeout(t._tid);
+  t._tid=setTimeout(()=>t.classList.remove('show'),3500);
+}
+</script>
+</body>
+</html>

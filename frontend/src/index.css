@@ -41,7 +41,7 @@ body {
   color: var(--color-text);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
-  line-height: 1.5;
+  line-height: 1.5; overflow-x: hidden;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -472,4 +472,29 @@ a:hover {
 /* White map labels on dark background */
 .leaflet-labels-layer .leaflet-tile {
   filter: invert(1);
+}
+.custom-cluster-icon {
+  background: rgba(16, 185, 129, 0.9);
+  border: 2px solid #fff;
+  border-radius: 50%;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 16px;
+  width: 40px;
+  height: 40px;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.6);
+  transition: all 0.2s ease;
+}
+
+.custom-cluster-icon:hover {
+  transform: scale(1.1);
+  background: var(--color-primary);
+  box-shadow: 0 0 20px var(--color-primary-glow);
+}
+
+.marker-cluster-custom {
+  background: transparent !important;
 }

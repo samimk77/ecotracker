@@ -1,0 +1,54 @@
+{
+  "nav": {
+    "impact": "ಪರಿಣಾಮ",
+    "issues": "ಸಮಸ್ಯೆಗಳು",
+    "events": "ಕಾರ್ಯಕ್ರಮಗಳು",
+    "spotlight": "ಸ್ಪಾಟ್‌ಲೈಟ್",
+    "login": "ಲಾಗಿನ್",
+    "logout": "ಲಾಗ್ಔಟ್",
+    "uplink_stable": "ಸಂಪರ್ಕ_ಸ್ಥಿರ"
+  },
+  "home": {
+    "hero_title_1": "ಕ್ರೌಡ್ಸೋರ್ಸ್",
+    "hero_title_2": "ಪರಿಸರ",
+    "hero_title_3": "ಪರಿಣಾಮ",
+    "hero_subtitle": "ನಗರ ಸುಸ್ಥಿರತೆಗಾಗಿ ನೈಜ-ಸಮಯದ ಮ್ಯಾಪಿಂಗ್, ಗ್ಯಾಮಿಫೈಡ್ ಕ್ರಿಯೆ ಮತ್ತು ಪಾರದರ್ಶಕ ಪರಿಹಾರ.",
+    "cta_primary": "ಕೊಡುಗೆ ನೀಡಲು ಪ್ರಾರಂಭಿಸಿ",
+    "cta_secondary": "ಲೈವ್ ಮ್ಯಾಪ್ ಅನ್ವೇಷಿಸಿ",
+    "stat_active_users": "ಸಕ್ರಿಯ ಬಳಕೆದಾರರು",
+    "stat_issues_resolved": "ಸಮಸ್ಯೆಗಳು ಬಗೆಹರಿದಿವೆ",
+    "stat_wards_mapped": "ವಾರ್ಡ್‌ಗಳು ಮ್ಯಾಪ್ ಆಗಿವೆ"
+  },
+  "feed": {
+    "title": "ಗ್ಲೋಬಲ್ ಫೀಡ್",
+    "all_wards": "ಎಲ್ಲಾ ವಾರ್ಡ್‌ಗಳು",
+    "status_all": "ಎಲ್ಲಾ ಸ್ಥಿತಿಗಳು",
+    "status_reported": "ವರದಿಯಾಗಿದೆ",
+    "status_verified": "ಪರಿಶೀಲಿಸಲಾಗಿದೆ",
+    "status_resolved": "ಬಗೆಹರಿಸಲಾಗಿದೆ",
+    "category_all": "ಎಲ್ಲಾ ವರ್ಗಗಳು",
+    "btn_upvote": "ಅಪ್‌ವೋಟ್",
+    "btn_verify": "ಪರಿಶೀಲಿಸಿ"
+  },
+  "dashboard": {
+    "title": "ವೈಯಕ್ತಿಕ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+    "tab_overview": "ಅವಲೋಕನ",
+    "tab_issues": "ಸಮಸ್ಯೆಗಳು",
+    "tab_rewards": "ಬಹುಮಾನಗಳು",
+    "tab_settings": "ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
+    "impact_score": "ಇಂಪ್ಯಾಕ್ಟ್ ಸ್ಕೋರ್",
+    "issues_raised": "ಎತ್ತಿದ ಸಮಸ್ಯೆಗಳು",
+    "issues_verified": "ಪರಿಶೀಲಿಸಿದ ಸಮಸ್ಯೆಗಳು",
+    "total_funded": "ಒಟ್ಟು ಧನಸಹಾಯ",
+    "btn_explore_feed": "ಗ್ಲೋಬಲ್ ಫೀಡ್ ಅನ್ವೇಷಿಸಿ"
+  },
+  "rewards": {
+    "title": "ಬಹುಮಾನ ಕೇಂದ್ರ",
+    "subtitle": "ನೈಜ-ಪ್ರಪಂಚದ ಬಹುಮಾನಗಳಿಗಾಗಿ ನಿಮ್ಮ ಪರಿಸರ-ಅಂಕಗಳನ್ನು ವಿನಿಮಯ ಮಾಡಿಕೊಳ್ಳಿ.",
+    "balance": "ನಿಮ್ಮ ಬ್ಯಾಲೆನ್ಸ್",
+    "redeemed": "ರಿಡೀಮ್ ಮಾಡಲಾಗಿದೆ",
+    "btn_redeem": "ರಿಡೀಮ್",
+    "btn_not_enough": "ಸಾಕಷ್ಟು XP ಇಲ್ಲ",
+    "btn_processing": "ಪ್ರಕ್ರಿಯೆಗೊಳಿಸಲಾಗುತ್ತಿದೆ..."
+  }
+}

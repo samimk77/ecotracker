@@ -48,13 +48,25 @@ const issueVideoStorage = new CloudinaryStorage({
   },
 });
 
+// Storage for contribution reels (video)
+const reelStorage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'ecotrack/reels',
+    resource_type: 'video',
+    allowed_formats: ['mp4', 'mov', 'webm'],
+    transformation: [{ quality: 'auto' }],
+  },
+});
+
 const uploadIssueImage = multer({ storage: issueStorage });
 const uploadEventImage = multer({ storage: eventStorage });
 const uploadAvatar = multer({ storage: avatarStorage });
+const uploadReel = multer({ storage: reelStorage, limits: { fileSize: 100 * 1024 * 1024 } }); // 100MB
 
 // Multi-media upload for issues
 const uploadIssueMedia = multer({
-  storage: issueStorage, // default storage, but we'll override in the route if needed or use separate fields
+  storage: issueStorage,
 }).fields([
   { name: 'image', maxCount: 1 },
   { name: 'video', maxCount: 1 }
@@ -65,5 +77,6 @@ module.exports = {
   uploadIssueImage, 
   uploadEventImage, 
   uploadAvatar,
-  uploadIssueMedia 
+  uploadIssueMedia,
+  uploadReel,
 };

@@ -103,50 +103,103 @@ const seedData = async () => {
     // 3. Create Demo Issues
     const issues = await Issue.insertMany([
       {
-        title: 'Demo: Open Garbage Dump',
-        description: 'Large pile of plastic and organic waste accumulating near the community park. Attracting pests and causing foul odor.',
-        category: 'garbage',
-        urgencyLevel: 'high',
-        urgencyScore: 75,
-        status: 'open',
-        author: demoUser._id,
-        ward: wards[0]._id,
-        wardName: wards[0].name,
-        location: { type: 'Point', coordinates: [77.5948, 12.9720] },
-        address: 'Central Park North Entrance',
-        upvoteCount: 24,
-        verificationCount: 8
+        title: 'Demo: Massive Waste Pile',
+        description: 'Large accumulation of plastic and construction debris blocking the sidewalk. Residents reporting strong odors.',
+        category: 'garbage', urgencyLevel: 'high', urgencyScore: 80, status: 'open',
+        author: demoUser._id, wardName: 'Indiranagar Ward',
+        location: { type: 'Point', coordinates: [77.6411, 12.9784] }, address: '100 Feet Rd, Indiranagar',
+        beforeImage: 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&q=80&w=800',
+        upvoteCount: 45, verificationCount: 12
       },
       {
-        title: 'Demo: River Pollution Source',
-        description: 'Visible oil sheen and chemical discharge observed from the industrial pipe near Blue River bridge.',
-        category: 'waterlogging',
-        urgencyLevel: 'critical',
-        urgencyScore: 95,
-        status: 'escalated',
-        author: demoUser._id,
-        ward: wards[1]._id,
-        wardName: wards[1].name,
-        location: { type: 'Point', coordinates: [77.6110, 12.9315] },
-        address: 'Blue River Industrial Bypass',
-        upvoteCount: 156,
-        verificationCount: 42,
-        escalationEmailSent: true
+        title: 'Demo: Road Sinkhole Detected',
+        description: 'Dangerous sinkhole forming after heavy rains. Poses immediate risk to two-wheelers and pedestrians.',
+        category: 'road_damage', urgencyLevel: 'critical', urgencyScore: 95, status: 'escalated',
+        author: demoUser._id, wardName: 'Koramangala Ward',
+        location: { type: 'Point', coordinates: [77.6226, 12.9352] }, address: '80 Feet Rd, Koramangala',
+        beforeImage: 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&q=80&w=800',
+        upvoteCount: 182, verificationCount: 56
       },
       {
-        title: 'Demo: Illegal Tree Felling',
-        description: 'Unmarked trucks seen removing mature trees from the protected zone during night hours.',
-        category: 'deforestation',
-        urgencyLevel: 'medium',
-        urgencyScore: 45,
-        status: 'verified',
-        author: demoUser._id,
-        ward: wards[0]._id,
-        wardName: wards[0].name,
-        location: { type: 'Point', coordinates: [77.5930, 12.9710] },
-        address: 'West Green Belt Perimeter',
-        upvoteCount: 12,
-        verificationCount: 5
+        title: 'Report: Industrial Dye Discharge',
+        description: 'Dark blue effluent being discharged into the lake inlet from a hidden pipe. Strong chemical odor detected.',
+        category: 'water_scarcity', urgencyLevel: 'critical', urgencyScore: 96, status: 'escalated',
+        author: demoUser._id, wardName: 'JP Nagar Ward',
+        location: { type: 'Point', coordinates: [77.5865, 12.9073] }, address: 'Sarakki Lake Perimeter',
+        beforeImage: 'https://images.unsplash.com/photo-1574689049868-e94ed5301745?auto=format&fit=crop&q=80&w=800',
+        upvoteCount: 190, verificationCount: 45
+      },
+      {
+        title: 'Report: Unauthorized Canopy Clearance',
+        description: 'Several mature Gulmohar trees being cut down without visible BBMP permits behind the residential complex.',
+        category: 'deforestation', urgencyLevel: 'high', urgencyScore: 88, status: 'open',
+        author: demoUser._id, wardName: 'JP Nagar Ward',
+        location: { type: 'Point', coordinates: [77.5855, 12.9063] }, address: 'JP Nagar 2nd Phase',
+        beforeImage: 'https://images.unsplash.com/photo-1510006851064-e6056cd0e3a8?auto=format&fit=crop&q=80&w=800',
+        upvoteCount: 75, verificationCount: 20
+      },
+      {
+        title: 'Demo: Sewage Overflow',
+        description: 'Blocked drain causing raw sewage to flow onto the main road near the school entrance.',
+        category: 'sewage', urgencyLevel: 'critical', urgencyScore: 90, status: 'escalated',
+        author: demoUser._id, wardName: 'Malleshwaram Ward',
+        location: { type: 'Point', coordinates: [77.5694, 13.0031] }, address: '15th Cross, Malleshwaram',
+        beforeImage: 'https://images.unsplash.com/photo-1544216717-3bbf52512659?auto=format&fit=crop&q=80&w=800',
+        upvoteCount: 124, verificationCount: 34
+      },
+      {
+        title: 'Demo: Air Quality Anomaly',
+        description: 'Sustained acrid smoke detected from unauthorized backyard plastic burning at multiple locations.',
+        category: 'air_pollution', urgencyLevel: 'high', urgencyScore: 78, status: 'verified',
+        author: demoUser._id, wardName: 'HSR Layout Ward',
+        location: { type: 'Point', coordinates: [77.6453, 12.9105] }, address: 'Sector 2, HSR Layout',
+        beforeImage: 'https://images.unsplash.com/photo-1536147116438-62679a5e01f2?auto=format&fit=crop&q=80&w=800',
+        upvoteCount: 89, verificationCount: 22
+      },
+      {
+        title: 'Demo: Chemical Dumping',
+        description: 'Anonymous report of chemical drums being discarded in the vacant lot behind the textile mill.',
+        category: 'illegal_dumping', urgencyLevel: 'critical', urgencyScore: 98, status: 'escalated',
+        author: demoUser._id, wardName: 'Yeshwanthpur Ward',
+        location: { type: 'Point', coordinates: [77.5501, 13.0245] }, address: 'Railway Parallel Rd, Yeshwanthpur',
+        beforeImage: 'https://images.unsplash.com/photo-1599305090598-fe179d501c27?auto=format&fit=crop&q=80&w=800',
+        upvoteCount: 210, verificationCount: 88
+      },
+      {
+        title: 'Demo: Waterlogging Hub',
+        description: 'Standard drainage failure causing 2ft water standing on main junction every time it rains.',
+        category: 'waterlogging', urgencyLevel: 'high', urgencyScore: 82, status: 'verified',
+        author: demoUser._id, wardName: 'Hebbal Ward',
+        location: { type: 'Point', coordinates: [77.5912, 13.0354] }, address: 'Hebbal Flyover Junction',
+        beforeImage: 'https://images.unsplash.com/photo-1510448914530-58079632811a?auto=format&fit=crop&q=80&w=800',
+        upvoteCount: 156, verificationCount: 45
+      },
+      {
+        title: 'Hotspot: Massive Electrical Hazard',
+        description: 'Low-hanging live wires sparked and caused minor fire.',
+        category: 'other', urgencyLevel: 'critical', urgencyScore: 96, status: 'escalated',
+        author: demoUser._id, wardName: 'MG Road Sector',
+        location: { type: 'Point', coordinates: [77.6067, 12.9733] }, address: 'Brigade Road Junction',
+        beforeImage: 'https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?auto=format&fit=crop&q=80&w=800',
+        upvoteCount: 350, verificationCount: 95
+      },
+      {
+        title: 'Hotspot: Industrial Acid Dump',
+        description: 'Barrels of unknown acid left near the metro pillar.',
+        category: 'illegal_dumping', urgencyLevel: 'critical', urgencyScore: 99, status: 'escalated',
+        author: demoUser._id, wardName: 'MG Road Sector',
+        location: { type: 'Point', coordinates: [77.6070, 12.9730] }, address: 'MG Road Hotspot',
+        beforeImage: 'https://images.unsplash.com/photo-1621451537084-482c73073a0f?auto=format&fit=crop&q=80&w=800',
+        upvoteCount: 600, verificationCount: 150
+      },
+      {
+        title: 'Hotspot: Structural Road Collapse',
+        description: 'Entire road segment subsided into underground canal.',
+        category: 'road_damage', urgencyLevel: 'critical', urgencyScore: 98, status: 'escalated',
+        author: demoUser._id, wardName: 'Indiranagar Ward',
+        location: { type: 'Point', coordinates: [77.6410, 12.9790] }, address: 'Indiranagar Hotspot',
+        beforeImage: 'https://images.unsplash.com/photo-1584462970667-0625af507c03?auto=format&fit=crop&q=80&w=800',
+        upvoteCount: 500, verificationCount: 120
       }
     ]);
 

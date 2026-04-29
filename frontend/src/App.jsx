@@ -3,11 +3,15 @@ import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Feed from './pages/Feed';
 import Telemetry from './pages/Telemetry';
-import Profile from './pages/Profile';
+import PersonalDashboard from './pages/PersonalDashboard';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Moderator from './pages/Moderator';
+import Events from './pages/Events';
+import Reels from './pages/Reels';
 import { LocationProvider } from './context/LocationContext';
+
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   const token = localStorage.getItem('token');
@@ -28,6 +32,18 @@ function App() {
     <LocationProvider>
       <Router>
         <div className="flex flex-col min-h-screen">
+          <Toaster 
+            position="top-center"
+            toastOptions={{
+              style: {
+                background: '#0f1420',
+                color: '#f0f4ff',
+                border: '1px solid rgba(255,255,255,0.05)',
+                fontSize: '14px',
+                fontFamily: '"DM Mono", monospace',
+              },
+            }}
+          />
           {isAuthenticated && <Navbar />}
           <main className="flex-1 w-full" style={{ paddingBottom: isAuthenticated ? '4rem' : '0' }}>
             <Routes>
@@ -39,7 +55,9 @@ function App() {
               <Route path="/" element={isAuthenticated ? <Home /> : <Navigate to="/login" />} />
               <Route path="/feed" element={isAuthenticated ? <Feed /> : <Navigate to="/login" />} />
               <Route path="/telemetry" element={isAuthenticated ? <Telemetry /> : <Navigate to="/login" />} />
-              <Route path="/profile" element={isAuthenticated ? <Profile /> : <Navigate to="/login" />} />
+              <Route path="/profile" element={isAuthenticated ? <PersonalDashboard /> : <Navigate to="/login" />} />
+              <Route path="/events" element={isAuthenticated ? <Events /> : <Navigate to="/login" />} />
+              <Route path="/reels" element={isAuthenticated ? <Reels /> : <Navigate to="/login" />} />
               <Route path="/moderator" element={isModerator ? <Moderator /> : <Navigate to="/" />} />
 
               {/* Fallback */}

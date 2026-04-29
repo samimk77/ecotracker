@@ -88,7 +88,7 @@ router.post('/', protect, uploadEventImage.single('image'), async (req, res) => 
     });
 
     io.emit('event:new', { eventId: event._id, wardName: event.wardName });
-    res.status(201).json({ success: true, event });
+    res.status(201).json({ success: true, event, pointsGained: 10 });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -127,7 +127,12 @@ router.post('/:id/join', protect, async (req, res) => {
       participantCount: event.participantCount,
     });
 
-    res.json({ success: true, joined: !joined, participantCount: event.participantCount });
+    res.json({ 
+      success: true, 
+      joined: !joined, 
+      participantCount: event.participantCount,
+      pointsGained: !joined ? 5 : 0 
+    });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

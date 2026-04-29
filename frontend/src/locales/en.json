@@ -1,0 +1,54 @@
+{
+  "nav": {
+    "impact": "Impact",
+    "issues": "Issues",
+    "events": "Events",
+    "spotlight": "Spotlight",
+    "login": "LOGIN",
+    "logout": "LOGOUT",
+    "uplink_stable": "UPLINK_STABLE"
+  },
+  "home": {
+    "hero_title_1": "Crowdsource",
+    "hero_title_2": "Environmental",
+    "hero_title_3": "Impact",
+    "hero_subtitle": "Real-time mapping, gamified action, and transparent resolution for urban sustainability.",
+    "cta_primary": "START CONTRIBUTING",
+    "cta_secondary": "EXPLORE LIVE MAP",
+    "stat_active_users": "ACTIVE USERS",
+    "stat_issues_resolved": "ISSUES RESOLVED",
+    "stat_wards_mapped": "WARDS MAPPED"
+  },
+  "feed": {
+    "title": "Global Feed",
+    "all_wards": "All Wards",
+    "status_all": "All Status",
+    "status_reported": "Reported",
+    "status_verified": "Verified",
+    "status_resolved": "Resolved",
+    "category_all": "All Categories",
+    "btn_upvote": "UPVOTE",
+    "btn_verify": "VERIFY"
+  },
+  "dashboard": {
+    "title": "Personal Dashboard",
+    "tab_overview": "Overview",
+    "tab_issues": "Issues",
+    "tab_rewards": "Rewards",
+    "tab_settings": "Settings",
+    "impact_score": "IMPACT SCORE",
+    "issues_raised": "Issues Raised",
+    "issues_verified": "Issues Verified",
+    "total_funded": "Total Funded",
+    "btn_explore_feed": "EXPLORE GLOBAL FEED"
+  },
+  "rewards": {
+    "title": "Reward Center",
+    "subtitle": "Exchange your eco-points for real-world rewards.",
+    "balance": "YOUR BALANCE",
+    "redeemed": "REDEEMED",
+    "btn_redeem": "REDEEM",
+    "btn_not_enough": "NOT ENOUGH XP",
+    "btn_processing": "PROCESSING..."
+  }
+}

@@ -6,6 +6,7 @@ const { resolveWardFromCoords, getAddressFromCoords } = require('../services/geo
 const { calculateUrgencyScore } = require('../services/urgencyService');
 const { sendEscalationEmail } = require('../services/emailService');
 const { getDistanceInMeters } = require('../utils/geo');
+const Notification = require('../models/Notification');
 
 
 
@@ -69,9 +70,9 @@ const createIssue = async (req, res) => {
 
     await issue.save();
 
-    // Update user stats
+    // Update user stats (removed impact score gain - only on verification now)
     await User.findByIdAndUpdate(req.user._id, {
-      $inc: { 'stats.issuesRaised': 1, 'stats.impactScore': 5 },
+      $inc: { 'stats.issuesRaised': 1 },
     });
 
     // Broadcast to ward room
@@ -80,7 +81,7 @@ const createIssue = async (req, res) => {
       wardName: issue.wardName,
     });
 
-    res.status(201).json({ success: true, issue });
+    res.status(201).json({ success: true, issue, pointsGained: 5 });
   } catch (err) {
     console.error('Create issue error:', err);
     res.status(500).json({ success: false, message: err.message });
@@ -96,9 +97,33 @@ const getIssues = async (req, res) => {
       sort = 'urgency', page = 1, limit = 20,
     } = req.query;
 
-    const filter = { status: { $ne: 'rejected' } };
+    const isMod = req.user && (req.user.role === 'moderator' || req.user.role === 'admin');
+    
+    let filter = {};
+    if (!isMod) {
+      // Regular users only see approved/active content
+      filter.status = { $in: ['verified', 'escalated', 'resolved'] };
+    } else {
+      // Moderators see everything except rejected by default, unless they specifically ask for it
+      filter.status = { $ne: 'rejected' };
+    }
+
     if (category) filter.category = category;
-    if (status) filter.status = status;
+    
+    // Status handling: Direct status request overrides role defaults, but we restrict for non-mods
+    if (status) {
+      if (isMod) {
+        filter.status = status;
+      } else {
+        // Non-mods can only filter within the approved statuses
+        if (['verified', 'escalated', 'resolved'].includes(status)) {
+          filter.status = status;
+        } else {
+          // If they ask for something like 'open', we force the 'approved only' filter
+          filter.status = { $in: ['verified', 'escalated', 'resolved'] };
+        }
+      }
+    }
     if (ward) filter.ward = ward;
     if (urgencyLevel) filter.urgencyLevel = urgencyLevel;
 
@@ -392,9 +417,13 @@ const verifyIssue = async (req, res) => {
     await issue.save();
 
     // Update user stats
-    await User.findByIdAndUpdate(req.user._id, {
-      $inc: { 'stats.issuesVerified': 1, 'stats.impactScore': 3 },
-    });
+    let pointsGained = 0;
+    if (type === 'verify' && !existing) {
+      pointsGained = 5;
+      await User.findByIdAndUpdate(req.user._id, {
+        $inc: { 'stats.issuesVerified': 1, 'stats.impactScore': pointsGained },
+      });
+    }
 
     // Notify mod if critical
     if (level === 'critical' || issue.flagged) {
@@ -417,6 +446,7 @@ const verifyIssue = async (req, res) => {
       verificationCount: issue.verificationCount,
       disputeCount: issue.disputeCount,
       urgencyScore: issue.urgencyScore,
+      pointsGained
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -536,6 +566,27 @@ const moderatorAction = async (req, res) => {
       case 'approve':
         issue.status = 'verified';
         issue.flagged = false;
+        
+        // AWARD POINTS ON VERIFICATION
+        await User.findByIdAndUpdate(issue.author._id, {
+          $inc: { 'stats.impactScore': 10 }
+        });
+
+        // CREATE NOTIFICATION
+        await Notification.create({
+          user: issue.author._id,
+          title: 'Report Verified!',
+          message: `Your report "${issue.title}" has been verified by sector command. +10 Impact Points awarded.`,
+          type: 'issue_verified',
+          relatedId: issue._id
+        });
+
+        // Live notification via socket
+        io.to(`user:${issue.author._id}`).emit('notification:new', {
+          title: 'Report Verified!',
+          message: `Your report "${issue.title}" has been verified.`,
+          pointsGained: 10
+        });
         break;
       case 'unflag':
         issue.flagged = false;

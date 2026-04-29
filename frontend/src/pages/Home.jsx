@@ -29,6 +29,7 @@ const ModeSwitcher = ({ mode, setMode, t }) => {
   const options = [
     { id: 'issues', label: t('nav.issues') },
     { id: 'events', label: t('nav.events') },
+    { id: 'sustainability', label: t('nav.sustainability') || 'Sustainability' },
   ];
 
   return (

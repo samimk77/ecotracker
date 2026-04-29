@@ -988,7 +988,7 @@ const Events = () => {
         <TabBar active={activeTab} onChange={setActiveTab} />
 
         {/* ── Leaflet Map Panel ── */}
-        <div style={{ height: 320, flexShrink: 0, position: 'relative', borderBottom: `1px solid ${TOKEN.border}` }}>
+        <div style={{ height: 220, flexShrink: 0, position: 'relative', borderBottom: `1px solid ${TOKEN.border}` }}>
           <LeafletMap
             center={{ lat: 12.9716, lng: 77.5946 }}
             data={events.map(e => ({ ...e, location: e.location || { coordinates: [77.5946, 12.9716] } }))}

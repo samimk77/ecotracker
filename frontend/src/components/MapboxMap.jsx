@@ -380,7 +380,7 @@ export default function MapboxMap({ center, data: items = [], onAreaClick, type 
       {/* ── SMART BINS STATS PANEL (right side) ── */}
       {showBins && bins.length > 0 && (
         <div style={{
-          position: 'absolute', top: 16, right: 16, zIndex: 50, width: 220,
+          position: 'absolute', top: 40, right: 16, zIndex: 50, width: 220,
           background: 'rgba(8,14,26,0.92)', backdropFilter: 'blur(16px)',
           border: '1px solid rgba(59,130,246,0.2)', borderRadius: 16,
           padding: '14px 16px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
@@ -437,7 +437,7 @@ export default function MapboxMap({ center, data: items = [], onAreaClick, type 
       {/* ── COLLECTION SUCCESS TOAST ── */}
       {showSuccess && (
         <div style={{
-          position: 'absolute', top: 100, left: '50%', transform: 'translateX(-50%)', zIndex: 300,
+          position: 'absolute', top: 40, left: '50%', transform: 'translateX(-50%)', zIndex: 300,
           background: 'rgba(16,185,129,0.9)', backdropFilter: 'blur(8px)',
           padding: '12px 24px', borderRadius: 50, color: '#030b08',
           display: 'flex', alignItems: 'center', gap: 10,
@@ -451,7 +451,7 @@ export default function MapboxMap({ center, data: items = [], onAreaClick, type 
 
       {/* ── VERTICAL SIDEBAR CONTROL PANEL ── */}
       <div style={{
-        position: 'absolute', top: 16, left: 16, zIndex: 50,
+        position: 'absolute', top: 40, left: 16, zIndex: 50,
         display: 'flex', flexDirection: 'column', gap: 6, width: 160,
       }}>
         {/* Mode Buttons */}
@@ -560,10 +560,23 @@ export default function MapboxMap({ center, data: items = [], onAreaClick, type 
         ref={mapRef}
         mapboxAccessToken={MAPBOX_TOKEN}
         initialViewState={{
-          ...mapCenter,
-          zoom: 11,
-          pitch: 55,
-          bearing: -20
+          longitude: 78.9629,
+          latitude: 20.5937,
+          zoom: 3.5,
+          pitch: 0,
+          bearing: 0
+        }}
+        onLoad={(e) => {
+          if (mapRef.current) {
+            mapRef.current.flyTo({
+              center: [77.5946, 12.9716],
+              zoom: 11,
+              pitch: 55,
+              bearing: -20,
+              duration: 3000,
+              essential: true
+            });
+          }
         }}
         mapStyle="mapbox://styles/mapbox/dark-v11"
         interactiveLayerIds={['ward-extrusion']}

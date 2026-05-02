@@ -10,6 +10,9 @@ import Moderator from './pages/Moderator';
 import Events from './pages/Events';
 import Reels from './pages/Reels';
 import { LocationProvider } from './context/LocationContext';
+import { io } from 'socket.io-client';
+import SwarmModal from './components/SwarmModal';
+import { useState, useEffect } from 'react';
 
 import { Toaster } from 'react-hot-toast';
 
@@ -28,6 +31,19 @@ function App() {
 
   const isModerator = user && (user.role === 'moderator' || user.role === 'authority');
 
+  const [swarmAlert, setSwarmAlert] = useState(null);
+
+  useEffect(() => {
+    // Global socket connection for app-wide broadcasts
+    const socket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000', { withCredentials: true });
+    
+    socket.on('crisis_alert', (data) => {
+      setSwarmAlert(data);
+    });
+
+    return () => socket.disconnect();
+  }, []);
+
   return (
     <LocationProvider>
       <Router>
@@ -45,6 +61,9 @@ function App() {
             }}
           />
           {isAuthenticated && <Navbar />}
+          
+          <SwarmModal alert={swarmAlert} onClose={() => setSwarmAlert(null)} />
+
           <main className="flex-1 w-full" style={{ paddingBottom: isAuthenticated ? '4rem' : '0' }}>
             <Routes>
               {/* Public Routes */}

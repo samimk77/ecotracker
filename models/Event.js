@@ -61,5 +61,7 @@ const eventSchema = new mongoose.Schema({
 eventSchema.index({ location: '2dsphere' });
 eventSchema.index({ date: 1 });
 eventSchema.index({ ward: 1 });
+eventSchema.index({ status: 1, category: 1 }); // Compound index for filtering
+eventSchema.index({ status: 1, date: 1 });     // Compound index for timeline sorting
 
 module.exports = mongoose.model('Event', eventSchema);

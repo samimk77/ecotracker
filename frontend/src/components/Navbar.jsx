@@ -168,7 +168,25 @@ const NotificationCenter = ({ user }) => {
       setUnreadCount(prev => prev + 1);
     });
 
-    return () => socket.disconnect();
+    // Listen for IoT bin:full alerts from MapboxMap
+    const handleBinFull = (e) => {
+      const { binId, fillLevel } = e.detail;
+      setNotifications(prev => [{
+        _id: Date.now() + Math.random(),
+        title: `🗑️ Bin ${binId} is FULL`,
+        message: `Fill level reached ${fillLevel}%. Immediate collection required.`,
+        createdAt: new Date(),
+        isRead: false,
+        type: 'iot_alert'
+      }, ...prev].slice(0, 20));
+      setUnreadCount(prev => prev + 1);
+    };
+    window.addEventListener('bin:full:alert', handleBinFull);
+
+    return () => {
+      socket.disconnect();
+      window.removeEventListener('bin:full:alert', handleBinFull);
+    };
   }, [user]);
 
   useEffect(() => {

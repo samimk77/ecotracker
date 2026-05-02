@@ -81,6 +81,18 @@ const createIssue = async (req, res) => {
       wardName: issue.wardName,
     });
 
+    // --- HACKATHON SHOWSTOPPER: ECO-SWARM FLASH CLEANUP ---
+    // Trigger a city-wide Swarm Crisis Alert for critical waste or demo purposes
+    if (issue.category === 'e-waste' || issue.category === 'hazardous' || req.body.triggerSwarm) {
+      io.emit('crisis_alert', {
+        title: `URGENT: Critical ${issue.category.toUpperCase()} Hazard Detected!`,
+        message: `A massive environmental hazard has been spotted at ${issue.address || issue.wardName || 'a nearby location'}. The first responder to verify cleanup receives 10,000 Eco-Points!`,
+        lat: issue.location.coordinates[1],
+        lng: issue.location.coordinates[0],
+        issueId: issue._id
+      });
+    }
+
     res.status(201).json({ success: true, issue, pointsGained: 5 });
   } catch (err) {
     console.error('Create issue error:', err);
@@ -145,12 +157,15 @@ const getIssues = async (req, res) => {
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
+    // .lean() makes the query significantly faster for list views
     const issues = await Issue.find(filter)
       .sort(sortOptions)
       .skip(skip)
       .limit(parseInt(limit))
       .populate('author', 'name avatar')
-      .populate('ward', 'name');
+      .populate('ward', 'name')
+      .select('-escalationEmailContent -flagReason -resolutionNote')
+      .lean();
 
     const total = await Issue.countDocuments(filter);
 
@@ -171,7 +186,7 @@ const getIssues = async (req, res) => {
     }
 
     const issuesWithStatus = issues.map(issue => ({
-      ...issue.toObject(),
+      ...issue, // already a plain object due to .lean()
       hasUpvoted: !!userVotes[issue._id.toString()],
       hasDisliked: !!userDislikes[issue._id.toString()],
       userVerification: userVerifications[issue._id.toString()] || null,
@@ -197,7 +212,8 @@ const getIssue = async (req, res) => {
     const issue = await Issue.findById(req.params.id)
       .populate('author', 'name avatar wardName')
       .populate('ward', 'name authorityEmail')
-      .populate('resolvedBy', 'name');
+      .populate('resolvedBy', 'name')
+      .lean();
 
     if (!issue) {
       return res.status(404).json({ success: false, message: 'Issue not found.' });
@@ -212,7 +228,7 @@ const getIssue = async (req, res) => {
       userVerification = verif?.type || null;
     }
 
-    res.json({ success: true, issue: { ...issue.toObject(), hasUpvoted, userVerification } });
+    res.json({ success: true, issue: { ...issue, hasUpvoted, userVerification } });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

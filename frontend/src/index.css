@@ -498,3 +498,20 @@ a:hover {
 .marker-cluster-custom {
   background: transparent !important;
 }
+
+/* Custom Mapbox Popup Styles */
+.mapboxgl-popup-content {
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  border-radius: 8px !important;
+}
+
+.mapboxgl-popup-tip {
+  border-top-color: rgba(15, 23, 42, 0.9) !important;
+  border-bottom-color: rgba(15, 23, 42, 0.9) !important;
+}
+
+.mapboxgl-popup-close-button {
+  display: none !important;
+}

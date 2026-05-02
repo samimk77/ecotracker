@@ -5,9 +5,10 @@ const { uploadEventImage } = require('../config/cloudinary');
 const Event = require('../models/Event');
 const User = require('../models/User');
 const { resolveWardFromCoords } = require('../services/geocodingService');
+const { cacheMiddleware, clearCache } = require('../middleware/cache');
 
 // GET /api/events — list events with geo filter
-router.get('/', optionalAuth, async (req, res) => {
+router.get('/', optionalAuth, cacheMiddleware(60), async (req, res) => {
   try {
     const { lat, lng, radius = 10000, category, status, page = 1, limit = 20 } = req.query;
     const filter = {};
@@ -27,13 +28,28 @@ router.get('/', optionalAuth, async (req, res) => {
       .skip(skip)
       .limit(parseInt(limit))
       .populate('organizer', 'name avatar')
-      .populate('ward', 'name');
+      .populate('ward', 'name')
+      .select('-participants -funders -updates') // Exclude heavy arrays for list view
+      .lean();
+      
     const total = await Event.countDocuments(filter);
 
-    // Attach joined status
+    // Attach joined status using a separate efficient check
+    let userJoins = new Set();
+    if (req.user) {
+      const eventIds = events.map(e => e._id);
+      // We check the participants list by searching for the user in those specific events
+      // Since we excluded 'participants' from the main query, we do this check separately
+      const joinedEvents = await Event.find({
+        _id: { $in: eventIds },
+        participants: req.user._id
+      }).select('_id').lean();
+      joinedEvents.forEach(e => userJoins.add(e._id.toString()));
+    }
+
     const withJoined = events.map(e => ({
-      ...e.toObject(),
-      hasJoined: req.user ? e.participants.some(p => p.toString() === req.user._id.toString()) : false,
+      ...e,
+      hasJoined: userJoins.has(e._id.toString()),
     }));
 
     res.json({ success: true, events: withJoined, pagination: { total, page: parseInt(page), pages: Math.ceil(total / limit) } });
@@ -57,8 +73,11 @@ router.get('/:id', optionalAuth, async (req, res) => {
   }
 });
 
-// POST /api/events — create event
-router.post('/', protect, uploadEventImage.single('image'), async (req, res) => {
+// POST /api/events — create event (clears cache)
+router.post('/', protect, uploadEventImage.single('image'), async (req, res, next) => {
+  clearCache(); 
+  next();
+}, async (req, res) => {
   try {
     const io = req.app.get('io');
     const { title, description, category, date, endDate, capacity, fundingGoal, lat, lng, address } = req.body;

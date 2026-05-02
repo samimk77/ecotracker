@@ -2,7 +2,10 @@ import { useState, useEffect, useMemo } from 'react';
 import api from '../api';
 import { useLocation } from '../context/LocationContext';
 import LeafletMap from '../components/LeafletMap';
-import { MapPin, Clock, ShieldCheck, AlertCircle, X, Calendar, Activity, Zap } from 'lucide-react';
+import MapboxMap from '../components/MapboxMap';
+import { MapPin, Clock, ShieldCheck, AlertCircle, X, Calendar, Activity, Zap, Camera } from 'lucide-react';
+import SmartSortModal from '../components/SmartSortModal';
+import mapboxgl from 'mapbox-gl';
 
 const getDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371e3;
@@ -71,8 +74,15 @@ const Home = () => {
   const [selectedItems, setSelectedItems] = useState(null);
   const [selectionLabel, setSelectionLabel] = useState("");
   const { location } = useLocation();
+  const [isSmartSortOpen, setIsSmartSortOpen] = useState(false);
+  const [webGLSupported, setWebGLSupported] = useState(true);
 
   useEffect(() => {
+    try {
+      setWebGLSupported(mapboxgl.supported());
+    } catch (e) {
+      setWebGLSupported(false);
+    }
     const fetchData = async () => {
       try {
         setLoading(true);
@@ -126,7 +136,11 @@ const Home = () => {
         <ModeSwitcher mode={mode} setMode={(m) => { setMode(m); setSelectedItems(null); }} t={t} />
         
         {!loading ? (
-          <LeafletMap center={center} data={activeData} onAreaClick={handleAreaClick} type={mode} />
+          webGLSupported ? (
+            <MapboxMap center={center} data={activeData} onAreaClick={handleAreaClick} type={mode} />
+          ) : (
+            <LeafletMap center={center} data={activeData} onAreaClick={handleAreaClick} type={mode} />
+          )
         ) : (
           <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#080808', color: T.accent, fontSize: '12px', fontWeight: 800, letterSpacing: '0.2em' }}>
             <Activity size={24} style={{ marginRight: 12, animation: 'pulse 1s infinite' }} />
@@ -203,6 +217,51 @@ const Home = () => {
           </div>
         </div>
       )}
+
+      {/* Smart Sort — Refined bottom-center FAB */}
+      {!isSmartSortOpen && (
+        <button
+          onClick={() => setIsSmartSortOpen(true)}
+          style={{
+            position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
+            zIndex: 1000,
+            display: 'flex', alignItems: 'center', gap: 8,
+            padding: '10px 20px',
+            background: 'rgba(10, 15, 24, 0.9)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            color: '#00e5a0', 
+            border: '1px solid rgba(0, 229, 160, 0.3)', 
+            borderRadius: 50,
+            fontSize: 11, fontWeight: 800, letterSpacing: '0.06em',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.4), 0 0 10px rgba(0,229,160,0.1)',
+            cursor: 'pointer', transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+            whiteSpace: 'nowrap',
+            textTransform: 'uppercase',
+          }}
+          onMouseEnter={e => { 
+            e.currentTarget.style.transform = 'translateX(-50%) scale(1.05)'; 
+            e.currentTarget.style.background = 'rgba(0, 229, 160, 0.1)';
+            e.currentTarget.style.borderColor = '#00e5a0';
+            e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,229,160,0.2), 0 0 20px rgba(0,229,160,0.2)';
+          }}
+          onMouseLeave={e => { 
+            e.currentTarget.style.transform = 'translateX(-50%) scale(1)'; 
+            e.currentTarget.style.background = 'rgba(10, 15, 24, 0.9)';
+            e.currentTarget.style.borderColor = 'rgba(0, 229, 160, 0.3)';
+            e.currentTarget.style.boxShadow = '0 8px 32px rgba(0,0,0,0.4), 0 0 10px rgba(0,229,160,0.1)';
+          }}
+        >
+          <Camera size={16} strokeWidth={2.5} />
+          Smart Sort
+        </button>
+      )}
+
+      <SmartSortModal 
+        isOpen={isSmartSortOpen} 
+        onClose={() => setIsSmartSortOpen(false)} 
+        onClassificationSuccess={(data) => console.log('Points awarded:', data.ecoPoints)}
+      />
 
       <style>{`
         @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }

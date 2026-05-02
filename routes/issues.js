@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { protect, optionalAuth, requireMod } = require('../middleware/auth');
 const { uploadIssueImage, uploadIssueMedia } = require('../config/cloudinary');
+const { cacheMiddleware, clearCache } = require('../middleware/cache');
 const {
   createIssue,
   getIssues,
@@ -16,12 +17,15 @@ const {
 } = require('../controllers/issueController');
 
 // Feed + single issue (public with optional auth)
-router.get('/', optionalAuth, getIssues);
+router.get('/', optionalAuth, cacheMiddleware(15), getIssues);
 router.get('/mine', protect, getMyIssues);
-router.get('/:id', optionalAuth, getIssue);
+router.get('/:id', optionalAuth, cacheMiddleware(30), getIssue);
 
-// Post new issue with image and/or video
-router.post('/', protect, uploadIssueMedia, createIssue);
+// Post new issue (clears cache)
+router.post('/', protect, uploadIssueMedia, (req, res, next) => {
+  clearCache(); // Force refresh for everyone
+  next();
+}, createIssue);
 
 // Community actions
 router.post('/:id/upvote', protect, upvoteIssue);

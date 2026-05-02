@@ -4,6 +4,7 @@ const { Server } = require('socket.io');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const cron = require('node-cron');
+const compression = require('compression');
 require('dotenv').config();
 
 const { connectDB } = require('./config/db');
@@ -22,9 +23,18 @@ const impactWallRoutes = require('./routes/impactWall');
 const notificationRoutes = require('./routes/notifications');
 const telemetryRoutes = require('./routes/telemetry');
 const reelRoutes = require('./routes/reels');
+const aiRoutes = require('./routes/ai');
+const analyticsRoutes = require('./routes/analytics');
+const iotRoutes = require('./routes/iot');
+const fleetRoutes = require('./routes/fleet');
+const { startSimulation } = require('./services/iotSimulationService');
 
 const app = express();
+
 const server = http.createServer(app);
+
+// Enable Gzip compression
+app.use(compression());
 
 // Clean the FRONTEND_URL to prevent hidden character crashes
 let allowedOrigin = process.env.FRONTEND_URL ? process.env.FRONTEND_URL.trim().replace(/\/$/, '') : 'http://localhost:5173';
@@ -80,6 +90,10 @@ app.use('/api/impact-wall', impactWallRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/telemetry', telemetryRoutes);
 app.use('/api/reels', reelRoutes);
+app.use('/api/ai', aiRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/iot', iotRoutes);
+app.use('/api/fleet', fleetRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -125,5 +139,8 @@ connectDB().then(() => {
     console.log(`   Environment: ${process.env.NODE_ENV}`);
     console.log(`   MongoDB: connected`);
     console.log(`   Socket.io: ready\n`);
+    
+    // Start the IoT Simulation
+    startSimulation(io);
   });
 });

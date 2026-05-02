@@ -346,6 +346,52 @@ export default function MapboxMap({ center, data: items = [], onAreaClick, type 
       })
     };
   }, [aggregatedData.zones, type]);
+  
+  // ── Theme Configuration (Forced Dark) ──
+  const isDay = false;
+  const mapStyle = 'mapbox://styles/mapbox/dark-v11';
+  const fogColor = '#242b3b';
+
+  const buildingLayer = {
+    id: '3d-buildings',
+    source: 'composite',
+    'source-layer': 'building',
+    filter: ['==', 'extrude', 'true'],
+    type: 'fill-extrusion',
+    minzoom: 15,
+    paint: {
+      'fill-extrusion-color': isDay ? '#eee' : '#1e293b',
+      'fill-extrusion-height': [
+        'interpolate',
+        ['linear'],
+        ['zoom'],
+        15,
+        0,
+        15.05,
+        ['get', 'height']
+      ],
+      'fill-extrusion-base': [
+        'interpolate',
+        ['linear'],
+        ['zoom'],
+        15,
+        0,
+        15.05,
+        ['get', 'min_height']
+      ],
+      'fill-extrusion-opacity': 0.6
+    }
+  };
+
+  const skyLayer = {
+    id: 'sky',
+    type: 'sky',
+    paint: {
+      'sky-type': 'atmosphere',
+      'sky-atmosphere-sun': [0.0, 0.0],
+      'sky-atmosphere-sun-intensity': 15
+    }
+  };
 
   const onMapClick = (e) => {
     if (e.features && e.features.length > 0) {
@@ -573,16 +619,34 @@ export default function MapboxMap({ center, data: items = [], onAreaClick, type 
               zoom: 11,
               pitch: 55,
               bearing: -20,
-              duration: 3000,
+              duration: 4000,
               essential: true
             });
           }
         }}
-        mapStyle="mapbox://styles/mapbox/dark-v11"
+        mapStyle={mapStyle}
+        fog={{
+          range: [0.5, 10],
+          color: fogColor,
+          'horizon-blend': 0.03,
+          'high-color': isDay ? '#def' : '#10141d',
+          'space-color': isDay ? '#87ceeb' : '#000000',
+          'star-intensity': isDay ? 0 : 0.2
+        }}
+        terrain={{ source: 'mapbox-dem', exaggeration: 1.5 }}
         interactiveLayerIds={['ward-extrusion']}
         onClick={onMapClick}
       >
         <NavigationControl position="top-right" />
+        <Source
+          id="mapbox-dem"
+          type="raster-dem"
+          url="mapbox://mapbox.mapbox-terrain-dem-v1"
+          tileSize={512}
+          maxzoom={14}
+        />
+        <Layer {...skyLayer} />
+        <Layer {...buildingLayer} />
         
         {mapboxZones && (
           <Source id="wards" type="geojson" data={mapboxZones}>

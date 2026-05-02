@@ -982,18 +982,15 @@ const Events = () => {
       {/* ── Sidebar ── */}
       <Sidebar selected={selectedCategory} onSelect={setSelectedCategory} user={user} events={events} />
 
-      {/* ── Main ── */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <SearchBar value={searchQuery} onChange={setSearchQuery} onCreate={() => setCreateOpen(true)} />
-        <TabBar active={activeTab} onChange={setActiveTab} />
+      {/* ── Map Panel (left) + Events Content (center) ── */}
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
-        {/* ── Leaflet Map Panel ── */}
-        <div style={{ height: 220, flexShrink: 0, position: 'relative', borderBottom: `1px solid ${TOKEN.border}` }}>
-          <LeafletMap
-            center={{ lat: 12.9716, lng: 77.5946 }}
-            data={events.map(e => ({ ...e, location: e.location || { coordinates: [77.5946, 12.9716] } }))}
-            type="events"
-          />
+        {/* ── Leaflet Map Panel — fixed left column ── */}
+        <div style={{
+          width: 360, flexShrink: 0, display: 'flex', flexDirection: 'column',
+          borderRight: `1px solid ${TOKEN.border}`, position: 'relative',
+        }}>
+          {/* Map label */}
           <div style={{
             position: 'absolute', top: 12, left: 12, zIndex: 1000,
             background: 'rgba(11,15,26,0.85)', backdropFilter: 'blur(8px)',
@@ -1005,64 +1002,76 @@ const Events = () => {
             <Map size={12} />
             {events.length} Events On Map
           </div>
+          <LeafletMap
+            center={{ lat: 12.9716, lng: 77.5946 }}
+            data={events.map(e => ({ ...e, location: e.location || { coordinates: [77.5946, 12.9716] } }))}
+            type="events"
+          />
         </div>
 
-        {/* Content area */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: 24 }}>
-          {/* Hero banner — only on upcoming + no filter */}
-          {activeTab === 'upcoming' && !searchQuery && selectedCategory === 'All' && (
-            <div style={{
-              marginBottom: 24, padding: '28px 32px',
-              background: 'linear-gradient(135deg, rgba(0,229,160,0.08) 0%, rgba(0,229,160,0.02) 50%, transparent 100%)',
-              border: `1px solid rgba(0,229,160,0.12)`,
-              borderRadius: 16, position: 'relative', overflow: 'hidden',
-            }}>
-              <div style={{ position: 'absolute', top: -40, right: -40, width: 200, height: 200, borderRadius: '50%', background: 'rgba(0,229,160,0.04)', pointerEvents: 'none' }} />
-              <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.2em', color: TOKEN.accent, textTransform: 'uppercase', display: 'block', marginBottom: 10 }}>
-                Community Action
-              </span>
-              <h2 style={{ margin: '0 0 10px', fontSize: 28, fontWeight: 900, letterSpacing: '-0.04em', color: TOKEN.white, lineHeight: 1.1 }}>
-                Monitor · Report · Resolve
-              </h2>
-              <p style={{ margin: '0 0 20px', fontSize: 13, color: TOKEN.muted, maxWidth: 480, lineHeight: 1.65 }}>
-                Join verified community initiatives in your ward. Earn XP, contribute to official records, and help make Bengaluru better.
-              </p>
-              <div style={{ display: 'flex', gap: 10 }}>
-                <button style={{
-                  display: 'flex', alignItems: 'center', gap: 7, padding: '10px 20px',
-                  background: TOKEN.accent, color: '#000', border: 'none',
-                  borderRadius: 9, fontSize: 10, fontWeight: 800, letterSpacing: '0.1em',
-                  textTransform: 'uppercase', cursor: 'pointer',
-                }}>
-                  <Zap size={13} /> Quick Join
-                </button>
-                <button style={{
-                  padding: '10px 20px', background: 'rgba(255,255,255,0.06)',
-                  border: `1px solid ${TOKEN.border}`, color: TOKEN.mutedMid,
-                  borderRadius: 9, fontSize: 10, fontWeight: 700,
-                  letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer',
-                }}>
-                  Learn More
-                </button>
+        {/* ── Events Content — center ── */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <SearchBar value={searchQuery} onChange={setSearchQuery} onCreate={() => setCreateOpen(true)} />
+          <TabBar active={activeTab} onChange={setActiveTab} />
+
+          {/* Content area */}
+          <div style={{ flex: 1, overflowY: 'auto', padding: 24 }}>
+            {/* Hero banner — only on upcoming + no filter */}
+            {activeTab === 'upcoming' && !searchQuery && selectedCategory === 'All' && (
+              <div style={{
+                marginBottom: 24, padding: '28px 32px',
+                background: 'linear-gradient(135deg, rgba(0,229,160,0.08) 0%, rgba(0,229,160,0.02) 50%, transparent 100%)',
+                border: `1px solid rgba(0,229,160,0.12)`,
+                borderRadius: 16, position: 'relative', overflow: 'hidden',
+              }}>
+                <div style={{ position: 'absolute', top: -40, right: -40, width: 200, height: 200, borderRadius: '50%', background: 'rgba(0,229,160,0.04)', pointerEvents: 'none' }} />
+                <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.2em', color: TOKEN.accent, textTransform: 'uppercase', display: 'block', marginBottom: 10 }}>
+                  Community Action
+                </span>
+                <h2 style={{ margin: '0 0 10px', fontSize: 28, fontWeight: 900, letterSpacing: '-0.04em', color: TOKEN.white, lineHeight: 1.1 }}>
+                  Monitor · Report · Resolve
+                </h2>
+                <p style={{ margin: '0 0 20px', fontSize: 13, color: TOKEN.muted, maxWidth: 480, lineHeight: 1.65 }}>
+                  Join verified community initiatives in your ward. Earn XP, contribute to official records, and help make Bengaluru better.
+                </p>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <button style={{
+                    display: 'flex', alignItems: 'center', gap: 7, padding: '10px 20px',
+                    background: TOKEN.accent, color: '#000', border: 'none',
+                    borderRadius: 9, fontSize: 10, fontWeight: 800, letterSpacing: '0.1em',
+                    textTransform: 'uppercase', cursor: 'pointer',
+                  }}>
+                    <Zap size={13} /> Quick Join
+                  </button>
+                  <button style={{
+                    padding: '10px 20px', background: 'rgba(255,255,255,0.06)',
+                    border: `1px solid ${TOKEN.border}`, color: TOKEN.mutedMid,
+                    borderRadius: 9, fontSize: 10, fontWeight: 700,
+                    letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer',
+                  }}>
+                    Learn More
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {filteredEvents.length > 0 ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
-              {filteredEvents.map(event => (
-                <EventCard
-                  key={event.id}
-                  event={event}
-                  onRsvp={handleRsvp}
-                  onDetail={setDetailEvent}
-                />
-              ))}
-            </div>
-          ) : (
-            <EmptyState onReset={() => { setSearchQuery(''); setSelectedCategory('All'); }} />
-          )}
+            {filteredEvents.length > 0 ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
+                {filteredEvents.map(event => (
+                  <EventCard
+                    key={event.id}
+                    event={event}
+                    onRsvp={handleRsvp}
+                    onDetail={setDetailEvent}
+                  />
+                ))}
+              </div>
+            ) : (
+              <EmptyState onReset={() => { setSearchQuery(''); setSelectedCategory('All'); }} />
+            )}
+          </div>
         </div>
+
       </div>
 
       {/* ── Modals ── */}

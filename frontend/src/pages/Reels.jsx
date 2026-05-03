@@ -4,9 +4,13 @@ import api from '../api';
 import PointsModal from '../components/PointsModal';
 
 const T = {
-  bg: '#060810', accent: '#00e5a0',
-  border: 'rgba(255,255,255,0.08)', muted: 'rgba(255,255,255,0.45)',
-  card: '#0f1420', surface: '#0b0f1a', text: '#f0f4ff',
+  bg: 'var(--color-bg)',
+  accent: 'var(--color-primary)',
+  border: 'var(--color-border)',
+  muted: 'var(--color-text-dim)',
+  card: 'var(--color-card)',
+  surface: 'var(--color-surface)',
+  text: 'var(--color-text)',
 };
 
 const CAT_LABELS = {
@@ -230,7 +234,7 @@ function UploadModal({ onClose, onUploaded }) {
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)' }} />
+      <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(12px)' }} />
       <div style={{ position: 'relative', zIndex: 10, width: '100%', maxWidth: 480, background: T.card, border: `1px solid ${T.border}`, borderRadius: 18, overflow: 'hidden' }}>
         <div style={{ padding: '20px 24px', borderBottom: `1px solid ${T.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -287,10 +291,10 @@ function UploadModal({ onClose, onUploaded }) {
           </div>
         </div>
         <div style={{ padding: '16px 24px', borderTop: `1px solid ${T.border}`, display: 'flex', gap: 10 }}>
-          <button onClick={onClose} style={{ flex: 1, padding: 11, borderRadius: 9, background: 'transparent', border: `1px solid ${T.border}`, color: T.muted, fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer' }}>Cancel</button>
+          <button onClick={onClose} style={{ flex: 1, padding: 11, borderRadius: 9, background: 'transparent', border: `1px solid var(--color-border)`, color: T.muted, fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer' }}>Cancel</button>
           <button onClick={handleSubmit} disabled={!file || uploading} style={{
             flex: 2, padding: 11, borderRadius: 9, border: 'none',
-            background: file && !uploading ? T.accent : 'rgba(255,255,255,0.06)',
+            background: file && !uploading ? T.accent : 'var(--color-border)',
             color: file && !uploading ? '#000' : T.muted,
             fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase',
             cursor: file && !uploading ? 'pointer' : 'default',
@@ -322,7 +326,7 @@ function FundModal({ reel, onClose, onSuccess }) {
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)' }} />
+      <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(12px)' }} />
       <div style={{ position: 'relative', zIndex: 10, width: '100%', maxWidth: 400, background: T.card, border: `1px solid ${T.accent}`, borderRadius: 18, overflow: 'hidden', boxShadow: '0 0 40px rgba(0,229,160,0.15)' }}>
         <div style={{ padding: '24px', textAlign: 'center', borderBottom: `1px solid ${T.border}` }}>
           <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(0,229,160,0.15)', border: `1px solid rgba(0,229,160,0.3)`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
@@ -346,8 +350,8 @@ function FundModal({ reel, onClose, onSuccess }) {
             ))}
           </div>
         </div>
-        <div style={{ padding: '16px 24px', display: 'flex', gap: 12, background: 'rgba(0,0,0,0.2)' }}>
-          <button onClick={onClose} style={{ flex: 1, padding: 12, borderRadius: 9, background: 'transparent', border: `1px solid ${T.border}`, color: T.muted, fontSize: 11, fontWeight: 800, cursor: 'pointer' }}>Cancel</button>
+        <div style={{ padding: '16px 24px', display: 'flex', gap: 12, background: 'var(--color-surface)' }}>
+          <button onClick={onClose} style={{ flex: 1, padding: 12, borderRadius: 9, background: 'transparent', border: `1px solid var(--color-border)`, color: T.muted, fontSize: 11, fontWeight: 800, cursor: 'pointer' }}>Cancel</button>
           <button onClick={handleFund} disabled={processing || !amount} style={{ flex: 2, padding: 12, borderRadius: 9, background: T.accent, border: 'none', color: '#000', fontSize: 11, fontWeight: 800, cursor: (processing || !amount) ? 'default' : 'pointer', opacity: (processing || !amount) ? 0.5 : 1 }}>
             {processing ? 'Processing...' : 'Confirm Funding'}
           </button>
@@ -371,7 +375,7 @@ function NavBtn({ onClick, disabled, children }) {
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       transition: 'all 0.2s',
       outline: 'none',
-      boxShadow: disabled ? 'none' : '0 4px 16px rgba(0,0,0,0.4)',
+      boxShadow: disabled ? 'none' : 'var(--shadow-main)',
     }}
       onMouseEnter={e => { if (!disabled) e.currentTarget.style.background = 'rgba(0,229,160,0.25)'; }}
       onMouseLeave={e => { if (!disabled) e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
@@ -475,26 +479,24 @@ export default function Reels() {
     if (pts) setPoints(pts);
   };
 
-  const navBarH = '4.5rem';
   const topBarH = '52px';
-  const feedH = `calc(100vh - ${navBarH} - ${topBarH})`;
-  // 9:16 card width derived from available height
+  const feedH = `calc(100vh - ${topBarH})`;
   const cardH = feedH;
   const cardW = `calc(${feedH} * 9 / 16)`;
 
   return (
     <div style={{ 
-      position: 'fixed', top: navBarH, left: 0, right: 0, bottom: 0, 
-      background: '#000', display: 'flex', flexDirection: 'column', 
-      overflow: 'hidden', fontFamily: 'system-ui, sans-serif', color: T.text, zIndex: 50 
+      width: '100%', height: '100%', 
+      background: 'var(--color-bg)', display: 'flex', flexDirection: 'column', 
+      overflow: 'hidden', fontFamily: 'var(--font-body)', color: T.text
     }}>
       <style>{`select option { background: #0f1420; } * { box-sizing: border-box; }`}</style>
 
       {/* ── Top bar ── */}
       <div style={{
         height: topBarH, flexShrink: 0,
-        background: 'rgba(6,8,16,0.92)', backdropFilter: 'blur(12px)',
-        borderBottom: `1px solid ${T.border}`,
+        background: 'var(--color-surface)', backdropFilter: 'var(--glass-blur)',
+        borderBottom: `1px solid var(--color-border)`,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '0 20px', gap: 12,
       }}>
@@ -502,9 +504,9 @@ export default function Reels() {
         <div style={{ display: 'flex', gap: 6, overflowX: 'auto', flexShrink: 1 }}>
           {CATS.map(c => (
             <button key={c.id} onClick={() => handleCat(c.id)} style={{
-              padding: '5px 14px', borderRadius: 20, border: `1px solid ${activeCat === c.id ? T.accent : T.border}`,
-              background: activeCat === c.id ? T.accent : 'rgba(255,255,255,0.05)',
-              color: activeCat === c.id ? '#000' : 'rgba(255,255,255,0.7)',
+              padding: '5px 14px', borderRadius: 20, border: `1px solid ${activeCat === c.id ? T.accent : 'var(--color-border)'}`,
+              background: activeCat === c.id ? T.accent : 'var(--color-surface-elevated)',
+              color: activeCat === c.id ? '#000' : 'var(--color-text-muted)',
               fontSize: 11, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.18s',
             }}>{c.label}</button>
           ))}

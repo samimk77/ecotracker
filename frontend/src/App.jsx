@@ -1,5 +1,6 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Navbar from './components/Navbar';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+
+import AppSidebar from './components/AppSidebar';
 import Home from './pages/Home';
 import Feed from './pages/Feed';
 import Telemetry from './pages/Telemetry';
@@ -13,8 +14,64 @@ import { LocationProvider } from './context/LocationContext';
 import { io } from 'socket.io-client';
 import SwarmModal from './components/SwarmModal';
 import { useState, useEffect } from 'react';
-
 import { Toaster } from 'react-hot-toast';
+
+// Inner shell — must live inside <Router> to use useLocation
+function AppShell({ isAuthenticated, isModerator, swarmAlert, setSwarmAlert }) {
+  const { pathname } = useLocation();
+  const isHome = pathname === '/';
+
+  return (
+    <>
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          style: {
+            background: 'var(--color-surface-elevated)',
+            color: 'var(--color-text)',
+            border: '1px solid var(--color-border)',
+            fontSize: '14px',
+            fontFamily: 'var(--font-body)',
+          },
+        }}
+      />
+      <SwarmModal alert={swarmAlert} onClose={() => setSwarmAlert(null)} />
+
+      {isAuthenticated ? (
+        <div style={{ display: 'flex', width: '100vw', height: '100vh', overflow: 'hidden' }}>
+          {/* Shared sidebar on every authenticated page */}
+          <AppSidebar />
+
+          {/* Page content area */}
+          <div style={{
+            flex: 1,
+            height: '100vh',
+            overflow: isHome ? 'hidden' : 'auto',
+            background: 'var(--color-bg)',
+            position: 'relative',
+          }}>
+            <Routes>
+              <Route path="/"          element={<Home />} />
+              <Route path="/feed"      element={<Feed />} />
+              <Route path="/telemetry" element={<Telemetry />} />
+              <Route path="/profile"   element={<PersonalDashboard />} />
+              <Route path="/events"    element={<Events />} />
+              <Route path="/reels"     element={<Reels />} />
+              <Route path="/moderator" element={isModerator ? <Moderator /> : <Navigate to="/" />} />
+              <Route path="*"          element={<Navigate to="/" />} />
+            </Routes>
+          </div>
+        </div>
+      ) : (
+        <Routes>
+          <Route path="/login"    element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="*"         element={<Navigate to="/login" />} />
+        </Routes>
+      )}
+    </>
+  );
+}
 
 function App() {
   const token = localStorage.getItem('token');
@@ -29,7 +86,7 @@ function App() {
     }
   }
 
-  const isModerator = user && (user.role === 'moderator' || user.role === 'authority');
+  const isModerator = user && (user.role === 'moderator' || user.role === 'authority' || user.role === 'admin');
 
   const [swarmAlert, setSwarmAlert] = useState(null);
 
@@ -47,43 +104,12 @@ function App() {
   return (
     <LocationProvider>
       <Router>
-        <div className="flex flex-col min-h-screen">
-          <Toaster 
-            position="top-center"
-            toastOptions={{
-              style: {
-                background: '#0f1420',
-                color: '#f0f4ff',
-                border: '1px solid rgba(255,255,255,0.05)',
-                fontSize: '14px',
-                fontFamily: '"DM Mono", monospace',
-              },
-            }}
-          />
-          {isAuthenticated && <Navbar />}
-          
-          <SwarmModal alert={swarmAlert} onClose={() => setSwarmAlert(null)} />
-
-          <main className="flex-1 w-full" style={{ paddingBottom: isAuthenticated ? '4rem' : '0' }}>
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/" />} />
-              <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/" />} />
-
-              {/* Protected Routes */}
-              <Route path="/" element={isAuthenticated ? <Home /> : <Navigate to="/login" />} />
-              <Route path="/feed" element={isAuthenticated ? <Feed /> : <Navigate to="/login" />} />
-              <Route path="/telemetry" element={isAuthenticated ? <Telemetry /> : <Navigate to="/login" />} />
-              <Route path="/profile" element={isAuthenticated ? <PersonalDashboard /> : <Navigate to="/login" />} />
-              <Route path="/events" element={isAuthenticated ? <Events /> : <Navigate to="/login" />} />
-              <Route path="/reels" element={isAuthenticated ? <Reels /> : <Navigate to="/login" />} />
-              <Route path="/moderator" element={isModerator ? <Moderator /> : <Navigate to="/" />} />
-
-              {/* Fallback */}
-              <Route path="*" element={<Navigate to={isAuthenticated ? "/" : "/login"} />} />
-            </Routes>
-          </main>
-        </div>
+        <AppShell
+          isAuthenticated={isAuthenticated}
+          isModerator={isModerator}
+          swarmAlert={swarmAlert}
+          setSwarmAlert={setSwarmAlert}
+        />
       </Router>
     </LocationProvider>
   );

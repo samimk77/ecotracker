@@ -37,11 +37,9 @@ function computeScore(zoneId) {
 
 /* ─── Color scale: Green → Yellow → Red ─── */
 function getColor(score) {
-  if (score >= 80) return '#16a34a';  // Strong green
-  if (score >= 65) return '#4ade80';  // Light green
-  if (score >= 50) return '#facc15';  // Yellow
-  if (score >= 35) return '#f97316';  // Amber/orange
-  return '#ef4444';                   // Red
+  if (score >= 75) return '#00e5a0';  // Green (EcoImpact Primary)
+  if (score >= 45) return '#f59e0b';  // Orange (Amber)
+  return '#ef4444';                   // Red (Rose)
 }
 
 function getLabel(score) {
@@ -72,34 +70,7 @@ function onEachFeature(feature, layer, onAreaClick) {
   const { text: perfText, color: perfColor } = getLabel(score);
   const zoneName = data.label || feature.properties?.zone_name || `Sector ${zoneId}`;
 
-  layer.bindPopup(`
-    <div style="min-width:240px;font-family:Inter,system-ui,sans-serif;color:#fff;line-height:1.6">
-      <div style="font-size:9px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:4px">Sustainability Report</div>
-      <h4 style="margin:0 0 12px;font-size:15px;font-weight:800;letter-spacing:-.01em;color:#fff">${zoneName}</h4>
-
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div>
-          <div style="font-size:28px;font-weight:900;color:${getColor(score)};line-height:1">${score}</div>
-          <div style="font-size:9px;color:rgba(255,255,255,.4);font-weight:700;letter-spacing:.08em;text-transform:uppercase">Eco Score</div>
-        </div>
-        <span style="font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:4px 10px;border-radius:4px;background:${perfColor}22;color:${perfColor};border:1px solid ${perfColor}44">${perfText}</span>
-      </div>
-
-      <div style="background:rgba(255,255,255,.05);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px">
-        <div style="display:flex;justify-content:space-between">
-          <span style="font-size:11px;color:rgba(255,255,255,.5);font-weight:600">Resolution Rate</span>
-          <span style="font-size:11px;color:#fff;font-weight:700">${data.resolutionRate}%</span>
-        </div>
-        <div style="height:3px;background:rgba(255,255,255,.08);border-radius:2px">
-          <div style="height:100%;width:${data.resolutionRate}%;background:${getColor(score)};border-radius:2px"></div>
-        </div>
-        <div style="display:flex;justify-content:space-between;margin-top:2px">
-          <span style="font-size:11px;color:rgba(255,255,255,.5);font-weight:600">Avg. Resolution Time</span>
-          <span style="font-size:11px;color:#fff;font-weight:700">${data.avgDays} days</span>
-        </div>
-      </div>
-    </div>
-  `);
+  // Sustainability popups removed for a cleaner, sidebar-focused UI.
 
   layer.on({
     mouseover: (e) => {
@@ -111,7 +82,7 @@ function onEachFeature(feature, layer, onAreaClick) {
     },
     click: () => {
       const center = layer.getBounds().getCenter();
-      if (onAreaClick) onAreaClick(center.lat, center.lng, zoneName);
+      if (onAreaClick) onAreaClick(center.lat, center.lng, zoneName, null, zoneId);
     },
   });
 }

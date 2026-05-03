@@ -139,6 +139,7 @@ router.post('/:id/join', protect, async (req, res) => {
       });
     }
 
+    const updatedUser = await User.findById(req.user._id).select('stats');
     await event.save();
 
     io.to(`event:${event._id}`).emit('event:participants', {
@@ -150,7 +151,8 @@ router.post('/:id/join', protect, async (req, res) => {
       success: true, 
       joined: !joined, 
       participantCount: event.participantCount,
-      pointsGained: !joined ? 5 : 0 
+      pointsGained: !joined ? 5 : 0,
+      user: updatedUser
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

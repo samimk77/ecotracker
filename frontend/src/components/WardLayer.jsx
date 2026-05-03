@@ -17,11 +17,11 @@ const pinIcon = new L.divIcon({
   iconAnchor: [16, 32],
 });
 
-function styleFeature(feature, hideColors) {
+function styleFeature(feature, hideColors, isEventsMode) {
   const score = feature.properties?.score ?? 50;
   return {
     fillColor: getColor(score, hideColors),
-    fillOpacity: hideColors ? 0.05 : 0.28,
+    fillOpacity: isEventsMode ? 0.12 : (hideColors ? 0.05 : 0.28),
     color: "#94a3b8",
     weight: 1.2,
     opacity: 0.7,
@@ -32,20 +32,12 @@ function onEachFeature(feature, layer, onAreaClick, navigate, isEventsMode) {
   const properties = feature.properties || {};
   const wardName = properties.KGISWardName || properties.zone_name;
 
-  layer.bindPopup(`
-    <div style="min-width: 240px; font-family: Inter, system-ui, sans-serif; color: #fff;">
-      <h4 style="margin: 0 0 8px; color: #00e5a0;">${wardName || "Zone"}</h4>
-      <div><strong>${isEventsMode ? 'Events' : 'Issues'} in Area:</strong> ${properties.ward_count || 0}</div>
-      <div style="margin-top: 6px; font-size: 10px; color: #94a3b8;">TACTICAL_SCAN: ACTIVE</div>
-      <div style="margin-top: 10px; font-size: 11px; color: #00e5a0; cursor: pointer; text-decoration: underline;">
-        ${onAreaClick ? 'CLICK TO ANALYZE SECTOR' : `CLICK TO VIEW ALL ${isEventsMode ? 'EVENTS' : 'REPORTS'}`}
-      </div>
-    </div>
-  `);
+  // Popups removed as per user request to declutter the map view.
+  // Sidebar handles the information display.
 
   layer.on({
     mouseover: (e) => {
-      e.target.setStyle({ fillOpacity: 0.55, weight: 3, color: "#f8fafc" });
+      e.target.setStyle({ fillOpacity: 0.65, weight: 4, color: "#ffffff" });
       e.target.bringToFront();
     },
     mouseout: (e) => {

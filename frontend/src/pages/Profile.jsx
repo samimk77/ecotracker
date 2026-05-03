@@ -45,8 +45,8 @@ const Profile = () => {
     }
   };
 
-  if (loading) return <div className="flex justify-center items-center h-screen text-primary">LOADING ARCHIVE...</div>;
-  if (!profileData) return <div className="p-8 text-danger">ERROR: AUTH_SESSION_EXPIRED</div>;
+  if (loading) return <div className="flex justify-center items-center h-screen text-[var(--color-primary)]">LOADING ARCHIVE...</div>;
+  if (!profileData) return <div className="p-8 text-[var(--color-danger)]">ERROR: AUTH_SESSION_EXPIRED</div>;
 
   const { user, history } = profileData;
   const stats = user.stats || {};
@@ -56,8 +56,8 @@ const Profile = () => {
   return (
     <div className="container py-10 flex-col gap-8">
       <div className="flex-col gap-1">
-        <h4 className="text-[10px] font-bold text-primary tracking-[0.2em] uppercase">Operational Overview</h4>
-        <h1 className="text-2xl font-bold tracking-tight">Impact Dashboard</h1>
+        <h4 className="text-[10px] font-bold text-[var(--color-primary)] tracking-[0.2em] uppercase">Operational Overview</h4>
+        <h1 className="text-2xl font-bold tracking-tight text-[var(--color-text)]">Impact Dashboard</h1>
       </div>
 
       <div className="grid lg:grid-cols-12 gap-6">
@@ -65,20 +65,20 @@ const Profile = () => {
         <div className="lg:col-span-4 glass-card p-8 flex-col items-center text-center gap-6 relative overflow-hidden">
           <div className="relative flex items-center justify-center" style={{ width: '200px', height: '200px' }}>
             <svg viewBox="0 0 100 100" className="w-full h-full rotate-[-90deg]">
-              <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(52,211,153,0.1)" strokeWidth="8" />
+              <circle cx="50" cy="50" r="45" fill="none" stroke="var(--color-border)" strokeWidth="8" />
               <circle cx="50" cy="50" r="45" fill="none" stroke="var(--color-primary)" strokeWidth="8" 
                 strokeDasharray="282.7" strokeDashoffset={282.7 * (1 - score/100)} strokeLinecap="round" 
-                style={{ filter: 'drop-shadow(0 0 8px var(--color-primary))' }} />
+                style={{ filter: 'drop-shadow(0 0 8px var(--color-primary-glow))' }} />
             </svg>
             <div className="absolute flex-col">
-              <span className="text-5xl font-bold">{score}</span>
-              <span className="text-[10px] font-bold text-muted uppercase tracking-widest">Score</span>
+              <span className="text-5xl font-bold text-[var(--color-text)]">{score}</span>
+              <span className="text-[10px] font-bold text-[var(--color-text-dim)] uppercase tracking-widest">Score</span>
             </div>
           </div>
           
           <div className="flex-col gap-2">
-            <h3 className="font-bold text-sm uppercase">Sustainability Score</h3>
-            <p className="text-xs text-muted leading-relaxed">
+            <h3 className="font-bold text-sm uppercase text-[var(--color-text)]">Sustainability Score</h3>
+            <p className="text-xs text-[var(--color-text-muted)] leading-relaxed">
               Your current score reflects an 8% increase in reforestation efficiency this quarter.
             </p>
           </div>
@@ -92,30 +92,30 @@ const Profile = () => {
             {/* CO2 Offset */}
             <div className="glass-card p-6 flex-col gap-4">
               <div className="flex justify-between items-start">
-                <Globe className="text-muted" size={20} />
-                <span className="text-primary text-[10px] font-bold">+12.4%</span>
+                <Globe className="text-[var(--color-text-dim)]" size={20} />
+                <span className="text-[var(--color-primary)] text-[10px] font-bold">+12.4%</span>
               </div>
               <div className="flex-col">
-                <span className="text-[10px] font-bold text-muted uppercase tracking-widest">CO2 Offset</span>
-                <span className="text-xl font-bold uppercase">4,892 Tons</span>
+                <span className="text-[10px] font-bold text-[var(--color-text-dim)] uppercase tracking-widest">CO2 Offset</span>
+                <span className="text-xl font-bold uppercase text-[var(--color-text)]">4,892 Tons</span>
               </div>
-              <div className="progress-bar-bg h-1">
-                <div className="progress-bar-fill" style={{ width: '65%' }}></div>
+              <div className="h-1 bg-[var(--color-border)] rounded-full overflow-hidden">
+                <div className="h-full bg-[var(--color-primary)]" style={{ width: '65%' }}></div>
               </div>
             </div>
 
             {/* Resolved Issues */}
             <div className="glass-card p-6 flex-col gap-4">
               <div className="flex justify-between items-start">
-                <Shield className="text-muted" size={20} />
-                <span className="text-primary text-[10px] font-bold">98%</span>
+                <Shield className="text-[var(--color-text-dim)]" size={20} />
+                <span className="text-[var(--color-primary)] text-[10px] font-bold">98%</span>
               </div>
               <div className="flex-col">
-                <span className="text-[10px] font-bold text-muted uppercase tracking-widest">Resolved Issues</span>
-                <span className="text-xl font-bold uppercase">1,204 Units</span>
+                <span className="text-[10px] font-bold text-[var(--color-text-dim)] uppercase tracking-widest">Resolved Issues</span>
+                <span className="text-xl font-bold uppercase text-[var(--color-text)]">1,204 Units</span>
               </div>
-              <div className="progress-bar-bg h-1">
-                <div className="progress-bar-fill" style={{ width: '98%' }}></div>
+              <div className="h-1 bg-[var(--color-border)] rounded-full overflow-hidden">
+                <div className="h-full bg-[var(--color-primary)]" style={{ width: '98%' }}></div>
               </div>
             </div>
           </div>
@@ -123,19 +123,19 @@ const Profile = () => {
           {/* Impact Fund */}
           <div className="glass-card p-8 flex justify-between items-center relative overflow-hidden group">
             <div className="flex-col gap-2 relative z-10">
-              <span className="text-[10px] font-bold text-muted uppercase tracking-widest">Impact Fund</span>
-              <h2 className="text-3xl font-bold">$842,500.00</h2>
+              <span className="text-[10px] font-bold text-[var(--color-text-dim)] uppercase tracking-widest">Impact Fund</span>
+              <h2 className="text-3xl font-bold text-[var(--color-text)]">$842,500.00</h2>
               <div className="flex items-center gap-2 mt-2">
                 <div className="flex -space-x-2">
                   {[1, 2, 3].map(i => (
-                    <img key={i} src={`https://i.pravatar.cc/100?u=${i}`} className="w-6 h-6 rounded-full border-2 border-bg" />
+                    <img key={i} src={`https://i.pravatar.cc/100?u=${i}`} className="w-6 h-6 rounded-full border-2 border-[var(--color-bg)]" />
                   ))}
-                  <div className="w-6 h-6 rounded-full border-2 border-bg bg-surface flex items-center justify-center text-[8px] font-bold">+12</div>
+                  <div className="w-6 h-6 rounded-full border-2 border-[var(--color-bg)] bg-[var(--color-surface-elevated)] flex items-center justify-center text-[8px] font-bold text-[var(--color-text)]">+12</div>
                 </div>
-                <span className="text-[10px] font-bold text-muted uppercase tracking-widest ml-2">Active Contributors</span>
+                <span className="text-[10px] font-bold text-[var(--color-text-dim)] uppercase tracking-widest ml-2">Active Contributors</span>
               </div>
             </div>
-            <Zap className="text-primary opacity-5 absolute -right-4 -bottom-4 group-hover:scale-125 transition-transform" size={160} />
+            <Zap className="text-[var(--color-primary)] opacity-5 absolute -right-4 -bottom-4 group-hover:scale-125 transition-transform" size={160} />
           </div>
         </div>
       </div>
@@ -143,8 +143,8 @@ const Profile = () => {
       {/* Recent Verified Actions */}
       <div className="glass-card p-8 flex-col gap-8">
         <div className="flex justify-between items-center">
-          <h3 className="text-sm font-bold uppercase tracking-widest">Recent Verified Actions</h3>
-          <button className="text-[10px] font-bold text-muted flex items-center gap-1 hover:text-primary transition-all">
+          <h3 className="text-sm font-bold uppercase tracking-widest text-[var(--color-text)]">Recent Verified Actions</h3>
+          <button className="text-[10px] font-bold text-[var(--color-text-dim)] flex items-center gap-1 hover:text-[var(--color-primary)] transition-all">
             VIEW ALL <ArrowRight size={14} />
           </button>
         </div>
@@ -155,18 +155,18 @@ const Profile = () => {
               <div className="flex items-center gap-4">
                 <div className="relative">
                   <img src={action.avatar} alt={action.title} className="w-12 h-12 rounded-lg object-cover grayscale group-hover:grayscale-0 transition-all" />
-                  <div className="absolute -bottom-1 -right-1 bg-bg p-0.5 rounded">
-                    <Shield size={12} className="text-primary" />
+                  <div className="absolute -bottom-1 -right-1 bg-[var(--color-bg)] p-0.5 rounded">
+                    <Shield size={12} className="text-[var(--color-primary)]" />
                   </div>
                 </div>
                 <div className="flex-col gap-0.5">
-                  <h4 className="text-sm font-bold tracking-tight">{action.title}</h4>
-                  <p className="text-[10px] text-muted font-medium uppercase">{action.location} • Verified by {action.verifiedBy}</p>
+                  <h4 className="text-sm font-bold tracking-tight text-[var(--color-text)]">{action.title}</h4>
+                  <p className="text-[10px] text-[var(--color-text-muted)] font-medium uppercase">{action.location} • Verified by {action.verifiedBy}</p>
                 </div>
               </div>
               <div className="text-right flex-col">
-                <span className="text-sm font-bold text-primary">{action.metric}</span>
-                <span className="text-[10px] text-muted font-bold uppercase tracking-widest">{action.time}</span>
+                <span className="text-sm font-bold text-[var(--color-primary)]">{action.metric}</span>
+                <span className="text-[10px] text-[var(--color-text-dim)] font-bold uppercase tracking-widest">{action.time}</span>
               </div>
             </div>
           ))}
@@ -176,7 +176,7 @@ const Profile = () => {
       {/* Upcoming Eco-Events */}
       <div className="glass-card p-8 flex-col gap-8">
         <div className="flex justify-between items-center">
-          <h3 className="text-sm font-bold uppercase tracking-widest">Upcoming Eco-Events</h3>
+          <h3 className="text-sm font-bold uppercase tracking-widest text-[var(--color-text)]">Upcoming Eco-Events</h3>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
@@ -184,19 +184,19 @@ const Profile = () => {
             <p className="text-muted text-xs uppercase tracking-widest">No upcoming events found.</p>
           ) : (
             events.map((event) => (
-              <div key={event._id} className="bg-white/5 p-6 rounded-2xl border border-white/5 flex flex-col justify-between">
+              <div key={event._id} className="bg-[var(--color-surface)] p-6 rounded-2xl border border-[var(--color-border)] flex flex-col justify-between shadow-[var(--shadow-main)]">
                 <div>
                   <div className="flex justify-between items-start mb-4">
-                    <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-[8px] font-black uppercase tracking-widest">{event.category}</span>
-                    <span className="text-[10px] font-bold text-muted uppercase tracking-widest">{new Date(event.date).toLocaleDateString()}</span>
+                    <span className="px-3 py-1 rounded-full bg-[var(--color-primary-glow)] text-[var(--color-primary)] text-[8px] font-black uppercase tracking-widest">{event.category}</span>
+                    <span className="text-[10px] font-bold text-[var(--color-text-dim)] uppercase tracking-widest">{new Date(event.date).toLocaleDateString()}</span>
                   </div>
-                  <h4 className="text-lg font-bold mb-2">{event.title}</h4>
-                  <p className="text-xs text-muted mb-4 line-clamp-2">{event.description}</p>
+                  <h4 className="text-lg font-bold mb-2 text-[var(--color-text)]">{event.title}</h4>
+                  <p className="text-xs text-[var(--color-text-muted)] mb-4 line-clamp-2">{event.description}</p>
                 </div>
-                <div className="flex justify-between items-center mt-4 pt-4 border-t border-white/5">
+                <div className="flex justify-between items-center mt-4 pt-4 border-t border-[var(--color-border)]">
                   <div className="flex-col">
-                    <span className="text-xl font-black text-white">{event.participantCount || 0}</span>
-                    <span className="text-[8px] font-bold text-muted uppercase tracking-widest">Participants</span>
+                    <span className="text-xl font-black text-[var(--color-text)]">{event.participantCount || 0}</span>
+                    <span className="text-[8px] font-bold text-[var(--color-text-dim)] uppercase tracking-widest">Participants</span>
                   </div>
                   <button 
                     onClick={() => handleJoinEvent(event._id)}
@@ -218,14 +218,14 @@ const Profile = () => {
       <div className="flex justify-center gap-6 mt-8">
         {(user.role === 'moderator' || user.role === 'authority') && (
           <button 
-            className="px-8 py-3 rounded-xl bg-primary/10 text-primary border border-primary/20 text-[10px] font-bold hover:bg-primary hover:text-white transition-all tracking-[0.2em]" 
+            className="px-8 py-3 rounded-xl bg-[var(--color-primary-glow)] text-[var(--color-primary)] border border-[var(--color-border)] text-[10px] font-bold hover:bg-[var(--color-primary)] hover:text-black transition-all tracking-[0.2em]" 
             onClick={() => navigate('/moderator')}
           >
             ENTER MOD TERMINAL
           </button>
         )}
         <button 
-          className="px-8 py-3 rounded-xl bg-danger/10 text-danger border border-danger/20 text-[10px] font-bold hover:bg-danger hover:text-white transition-all tracking-[0.2em]" 
+          className="px-8 py-3 rounded-xl bg-[var(--color-danger)]/10 text-[var(--color-danger)] border border-[var(--color-danger)]/20 text-[10px] font-bold hover:bg-[var(--color-danger)] hover:text-white transition-all tracking-[0.2em]" 
           onClick={() => {
             localStorage.removeItem('token');
             navigate('/login');
@@ -234,8 +234,8 @@ const Profile = () => {
           LOGOUT
         </button>
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
-          <span className="text-[10px] font-bold text-primary/50 tracking-[0.3em] uppercase">Identity Authenticated: {user.role}</span>
+          <span className="w-2 h-2 rounded-full bg-[var(--color-primary)] animate-pulse"></span>
+          <span className="text-[10px] font-bold text-[var(--color-primary)] opacity-50 tracking-[0.3em] uppercase">Identity Authenticated: {user.role}</span>
         </div>
       </div>
 

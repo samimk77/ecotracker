@@ -9,8 +9,9 @@ const cacheMiddleware = (duration) => (req, res, next) => {
   // Only cache GET requests
   if (req.method !== 'GET') return next();
 
-  // Create a unique key based on URL and query params
-  const key = req.originalUrl || req.url;
+  // Create a unique key based on URL and user role (if authenticated)
+  const rolePrefix = req.user ? `${req.user.role}:` : 'guest:';
+  const key = rolePrefix + (req.originalUrl || req.url);
   const cachedResponse = myCache.get(key);
 
   if (cachedResponse) {

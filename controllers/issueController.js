@@ -682,6 +682,26 @@ const getMyIssues = async (req, res) => {
   }
 };
 
+const deleteIssue = async (req, res) => {
+  try {
+    const issue = await Issue.findById(req.params.id);
+    if (!issue) return res.status(404).json({ success: false, message: 'Issue not found' });
+
+    // Only author or moderator/admin can delete
+    const isOwner = issue.author.toString() === req.user._id.toString();
+    const isMod = ['moderator', 'admin', 'authority'].includes(req.user.role);
+
+    if (!isOwner && !isMod) {
+      return res.status(403).json({ success: false, message: 'Authorization identity mismatch' });
+    }
+
+    await Issue.findByIdAndDelete(req.params.id);
+    res.json({ success: true, message: 'Operational node terminated successfully' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 module.exports = {
   createIssue,
   getIssues,
@@ -693,4 +713,5 @@ module.exports = {
   moderatorAction,
   approveEscalation,
   uploadAfterImage,
+  deleteIssue,
 };

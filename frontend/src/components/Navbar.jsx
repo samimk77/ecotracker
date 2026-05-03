@@ -1,18 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Shield, Bell, User, Clock, CheckCircle, Zap, Activity, Globe } from 'lucide-react';
+import { Shield, Bell, User, Clock, CheckCircle, Zap, Activity, Globe, Sun, Moon } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 import { io } from 'socket.io-client';
 import api from '../api';
 import { useLanguage } from '../context/LanguageContext';
 
 const T = {
-  accent: '#00e5a0',
-  surface: '#060810',
-  card: '#0f1420',
-  border: 'rgba(255,255,255,0.05)',
-  text: '#f0f4ff',
-  muted: 'rgba(255,255,255,0.55)',
-  danger: '#ff4466',
+  accent: 'var(--color-primary)',
+  surface: 'var(--color-bg)',
+  card: 'var(--color-surface)',
+  border: 'var(--color-border)',
+  text: 'var(--color-text)',
+  muted: 'var(--color-text-muted)',
+  danger: 'var(--color-danger)',
 };
 
 /* ─── MODULAR SUB-COMPONENTS ─── */
@@ -46,15 +47,26 @@ const NavLinks = ({ currentPath, t }) => {
             to={link.to} 
             style={{ 
               color: isActive ? T.accent : T.muted, 
-              fontWeight: isActive ? 600 : 400,
-              fontSize: '0.875rem',
+              fontWeight: isActive ? 700 : 500,
+              fontSize: '0.75rem',
               textTransform: 'uppercase',
-              letterSpacing: '0.05em',
+              letterSpacing: '0.1em',
               textDecoration: 'none',
-              transition: 'color 0.2s ease',
+              transition: 'all 0.3s ease',
+              position: 'relative',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center'
             }}
           >
             {link.label}
+            {isActive && (
+              <span style={{
+                position: 'absolute', bottom: -21, width: '100%',
+                height: 3, background: T.accent, borderRadius: '4px 4px 0 0',
+                boxShadow: `0 0 12px var(--color-primary-glow)`
+              }} />
+            )}
           </Link>
         );
       })}
@@ -62,74 +74,23 @@ const NavLinks = ({ currentPath, t }) => {
   );
 };
 
-const LanguageSelector = () => {
-  const { language, setLanguage } = useLanguage();
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef(null);
-
-  const options = [
-    { code: 'en', label: 'English', short: 'EN' },
-    { code: 'hi', label: 'हिंदी', short: 'HI' },
-    { code: 'kn', label: 'ಕನ್ನಡ', short: 'KN' },
-  ];
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setIsOpen(false);
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const selected = options.find(o => o.code === language) || options[0];
-
+const ThemeToggle = () => {
+  const { theme, toggleTheme } = useTheme();
   return (
-    <div style={{ position: 'relative' }} ref={dropdownRef}>
-      <button 
-        onClick={() => setIsOpen(!isOpen)}
-        style={{ 
-          display: 'flex', alignItems: 'center', gap: '6px', 
-          background: isOpen ? 'rgba(0, 229, 160, 0.1)' : 'rgba(255,255,255,0.03)', 
-          padding: '6px 12px', borderRadius: '10px', 
-          border: `1px solid ${isOpen ? 'rgba(0, 229, 160, 0.3)' : T.border}`,
-          color: isOpen ? T.accent : T.text,
-          cursor: 'pointer', transition: 'all 0.2s ease',
-          fontSize: '11px', fontWeight: 700, letterSpacing: '0.05em'
-        }}
-      >
-        <Globe size={14} color={isOpen ? T.accent : T.muted} />
-        {selected.short}
-      </button>
-
-      {isOpen && (
-        <div style={{
-          position: 'absolute', top: '100%', right: 0, marginTop: '8px',
-          background: 'rgba(15, 20, 32, 0.95)', backdropFilter: 'blur(16px)',
-          border: `1px solid ${T.border}`, borderRadius: '12px',
-          boxShadow: '0 12px 40px rgba(0,0,0,0.6)', overflow: 'hidden',
-          width: '120px', zIndex: 100
-        }}>
-          {options.map((opt) => (
-            <button
-              key={opt.code}
-              onClick={() => { setLanguage(opt.code); setIsOpen(false); }}
-              style={{
-                width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '10px 14px', background: language === opt.code ? 'rgba(0, 229, 160, 0.08)' : 'transparent',
-                border: 'none', color: language === opt.code ? T.accent : T.text,
-                cursor: 'pointer', fontSize: '12px', fontWeight: language === opt.code ? 800 : 500,
-                transition: 'background 0.2s', textAlign: 'left'
-              }}
-              onMouseEnter={(e) => { if (language !== opt.code) e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
-              onMouseLeave={(e) => { if (language !== opt.code) e.currentTarget.style.background = 'transparent'; }}
-            >
-              {opt.label}
-              {language === opt.code && <div style={{ width: 6, height: 6, borderRadius: '50%', background: T.accent }} />}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
+    <button 
+      onClick={toggleTheme}
+      style={{ 
+        display: 'flex', alignItems: 'center', gap: '6px', 
+        background: 'var(--color-surface)', 
+        padding: '8px', borderRadius: '10px', 
+        border: `1px solid var(--color-border)`,
+        color: T.accent,
+        cursor: 'pointer', transition: 'all 0.2s ease',
+      }}
+      title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+    >
+      {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+    </button>
   );
 };
 
@@ -221,7 +182,7 @@ const NotificationCenter = ({ user }) => {
         {unreadCount > 0 && (
           <span style={{
             position: 'absolute', top: -4, right: -4, width: 8, height: 8,
-            background: T.danger, borderRadius: '50%', border: '2px solid #060810'
+            background: T.danger, borderRadius: '50%', border: `2px solid var(--color-bg)`
           }} />
         )}
       </button>
@@ -229,14 +190,14 @@ const NotificationCenter = ({ user }) => {
       {showNotifs && (
         <div style={{
           position: 'absolute', top: 40, right: -10, width: 320,
-          background: T.card, border: `1px solid ${T.border}`,
-          borderRadius: 14, boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
+          background: 'var(--color-surface-elevated)', border: `1px solid var(--color-border)`,
+          borderRadius: 14, boxShadow: 'var(--shadow-main)',
           overflow: 'hidden', animation: 'fadeIn 0.2s ease-out'
         }}>
           <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }`}</style>
-          <div style={{ padding: '16px 20px', borderBottom: `1px solid ${T.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#fff' }}>Alerts</span>
-            <span style={{ fontSize: 10, color: T.muted }}>{notifications.length} Total</span>
+          <div style={{ padding: '16px 20px', borderBottom: `1px solid var(--color-border)`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--color-text)' }}>Alerts</span>
+            <span style={{ fontSize: 10, color: 'var(--color-text-dim)' }}>{notifications.length} Total</span>
           </div>
           <div style={{ maxHeight: 400, overflowY: 'auto' }}>
             {notifications.length === 0 ? (
@@ -256,9 +217,9 @@ const NotificationCenter = ({ user }) => {
                       {n.type === 'issue_verified' ? <Zap size={14} color={T.accent} /> : <CheckCircle size={14} color={T.muted} />}
                     </div>
                     <div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: '#fff', marginBottom: 4 }}>{n.title}</div>
-                      <div style={{ fontSize: 12, color: T.muted, lineHeight: 1.5, marginBottom: 8 }}>{n.message}</div>
-                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>{n.title}</div>
+                      <div style={{ fontSize: 12, color: 'var(--color-text-muted)', lineHeight: 1.5, marginBottom: 8 }}>{n.message}</div>
+                      <div style={{ fontSize: 10, color: 'var(--color-text-dim)', display: 'flex', alignItems: 'center', gap: 4 }}>
                         <Clock size={10} /> {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </div>
                     </div>
@@ -319,11 +280,13 @@ const Navbar = () => {
 
   return (
     <nav style={{ 
-      padding: '0.75rem 2rem', 
+      padding: '0 2rem', height: '4.5rem',
       display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
-      borderBottom: `1px solid ${T.border}`,
-      background: 'rgba(15, 20, 32, 0.85)',
-      backdropFilter: 'blur(16px)',
+      borderBottom: `1px solid var(--color-border)`,
+      background: 'var(--color-surface)',
+      backdropFilter: 'var(--glass-blur)',
+      WebkitBackdropFilter: 'var(--glass-blur)',
+      boxShadow: 'var(--shadow-main)',
       position: 'sticky', top: 0, zIndex: 1000,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '3rem' }}>
@@ -332,17 +295,7 @@ const Navbar = () => {
       </div>
       
       <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-        <div style={{ 
-          display: 'flex', alignItems: 'center', gap: '8px', 
-          padding: '4px 12px', borderRadius: '20px', 
-          background: 'rgba(255,255,255,0.03)', border: `1px solid ${T.border}`,
-          marginRight: '0.5rem'
-        }}>
-          <Activity size={12} color={T.accent} />
-          <span style={{ fontSize: '10px', fontWeight: 800, color: T.muted, letterSpacing: '0.1em', textTransform: 'uppercase' }}>{t('nav.uplink_stable')}</span>
-        </div>
-
-        <LanguageSelector />
+        <ThemeToggle />
         <NotificationCenter user={user} />
         <Divider />
         <UserControls user={user} t={t} />

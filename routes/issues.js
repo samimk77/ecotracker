@@ -14,6 +14,7 @@ const {
   moderatorAction,
   approveEscalation,
   getMyIssues,
+  deleteIssue,
 } = require('../controllers/issueController');
 
 // Feed + single issue (public with optional auth)
@@ -28,16 +29,39 @@ router.post('/', protect, uploadIssueMedia, (req, res, next) => {
 }, createIssue);
 
 // Community actions
-router.post('/:id/upvote', protect, upvoteIssue);
-router.post('/:id/dislike', protect, dislikeIssue);
-router.post('/:id/verify', protect, verifyIssue);
+router.post('/:id/upvote', protect, (req, res, next) => {
+  clearCache();
+  next();
+}, upvoteIssue);
+
+router.post('/:id/dislike', protect, (req, res, next) => {
+  clearCache();
+  next();
+}, dislikeIssue);
+
+router.post('/:id/verify', protect, (req, res, next) => {
+  clearCache();
+  next();
+}, verifyIssue);
 
 
 // After image upload (reporter only, on resolution)
 router.post('/:id/after-image', protect, uploadIssueImage.single('image'), uploadAfterImage);
 
 // Moderator actions
-router.put('/:id/moderate', protect, requireMod, moderatorAction);
-router.post('/:id/escalate', protect, requireMod, approveEscalation);
+router.put('/:id/moderate', protect, requireMod, (req, res, next) => {
+  clearCache();
+  next();
+}, moderatorAction);
+
+router.post('/:id/escalate', protect, requireMod, (req, res, next) => {
+  clearCache();
+  next();
+}, approveEscalation);
+
+router.delete('/:id', protect, (req, res, next) => {
+  clearCache();
+  next();
+}, deleteIssue);
 
 module.exports = router;

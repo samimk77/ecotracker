@@ -19,7 +19,7 @@ function MapResizer({ setZoom }) {
   return null;
 }
 
-export default function LeafletMap({ center, data: items = [], onAreaClick, type = 'issues' }) {
+export default function LeafletMap({ center, data: items = [], onAreaClick, onItemClick, type = 'issues' }) {
   const [wards, setWards] = useState(null);
   const navigate = useNavigate();
 
@@ -91,22 +91,58 @@ export default function LeafletMap({ center, data: items = [], onAreaClick, type
   const [zoom, setZoom] = useState(11);
   const mapCenter = center ? [center.lat, center.lng] : [12.9716, 77.5946];
 
+  const [selectedId, setSelectedId] = useState(null);
+
   // Icons
-  const issueIcon = new L.Icon({
-    iconUrl: 'https://cdn-icons-png.flaticon.com/512/564/564619.png',
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -32],
-  });
+  const getIssueIcon = (id) => {
+    const isSelected = id === selectedId;
+    const size = isSelected ? 46 : 32;
+    return new L.Icon({
+      iconUrl: 'https://cdn-icons-png.flaticon.com/512/564/564619.png',
+      iconSize: [size, size],
+      iconAnchor: [size/2, size],
+      className: isSelected ? 'marker-highlighted' : 'marker-normal'
+    });
+  };
 
-  const eventIcon = new L.divIcon({
-    html: '<span style="font-size: 32px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));">📍</span>',
-    className: 'custom-div-icon',
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-  });
+  const getEventIcon = (category, id, itemWard) => {
+    const isSelected = id === selectedId;
+    // Highlight if explicitly selected OR if its ward matches the globally selected ward
+    const isWardHighlighted = window.selectedEventsWard && window.selectedEventsWard !== 'All Sectors' && itemWard === window.selectedEventsWard;
+    const finalHighlight = isSelected || isWardHighlighted;
+    
+    const size = finalHighlight ? 24 : 16;
 
-  const activeIcon = type === 'issues' ? issueIcon : eventIcon;
+    return new L.divIcon({
+      html: `
+        <div style="position: relative; width: ${size}px; height: ${size}px; display: flex; align-items: center; justify-content: center; opacity: ${(!window.selectedEventsWard || window.selectedEventsWard === 'All Sectors' || isWardHighlighted) ? 1 : 0.3}; transition: opacity 0.3s ease;">
+          <div style="
+            width: ${size}px; height: ${size}px;
+            background: #3b82f6;
+            border: 1.2px solid #fff;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg) ${finalHighlight ? 'translateY(-2.5px) scale(1.05)' : ''};
+            box-shadow: ${finalHighlight ? '0 4px 8px rgba(59,130,246,0.4)' : '0 2px 4px rgba(0,0,0,0.3)'};
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex; align-items: center; justify-content: center;
+          ">
+            <div style="width: 4px; height: 4px; background: #fff; border-radius: 50%; transform: rotate(45deg);"></div>
+          </div>
+          ${isSelected ? `
+            <div style="
+              position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+              border-radius: 50%; background: #3b82f6; opacity: 0.25;
+              animation: markerPulse 1.5s infinite ease-out;
+              z-index: -1;
+            "></div>
+          ` : ''}
+        </div>
+      `,
+      className: 'custom-event-icon',
+      iconSize: [size, size],
+      iconAnchor: [size/2, size],
+    });
+  };
 
   const renderMarkers = () => {
     const markers = items.map((item) => {
@@ -116,28 +152,20 @@ export default function LeafletMap({ center, data: items = [], onAreaClick, type
         <Marker 
           key={item._id} 
           position={[lat, lng]} 
-          icon={activeIcon}
+          icon={type === 'events' ? getEventIcon(item.category, item._id, item.ward) : getIssueIcon(item._id)}
           eventHandlers={{
             click: () => {
-              if (onAreaClick) {
+              setSelectedId(item._id);
+              if (onItemClick) {
+                onItemClick(item);
+              } else if (onAreaClick) {
                 onAreaClick(lat, lng, item.title);
               } else {
                 navigate(`/${type === 'issues' ? 'feed' : 'events'}?id=${item._id}`);
               }
             }
           }}
-        >
-          <Popup>
-            <div style={{ minWidth: '180px', fontFamily: 'Inter, sans-serif' }}>
-              <h4 style={{ margin: '0 0 4px', color: '#00e5a0' }}>{item.title}</h4>
-              <p style={{ margin: '0 0 8px', fontSize: '12px', color: '#666' }}>{item.description}</p>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px' }}>
-                <span style={{ textTransform: 'uppercase', fontWeight: 800 }}>{item.category}</span>
-                <span style={{ color: '#00e5a0' }}>{item.status?.toUpperCase() || (type === 'events' ? 'UPCOMING' : 'OPEN')}</span>
-              </div>
-            </div>
-          </Popup>
-        </Marker>
+        />
       );
     });
 

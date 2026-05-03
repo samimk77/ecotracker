@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Map, { Source, Layer, NavigationControl, Marker, Popup } from 'react-map-gl/mapbox';
 import { buildMergedWards } from './wardAggregation';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { MapPin, Activity, Info, Trash2, Database, Truck, Navigation, X, AlertTriangle, CheckCircle, Clock, BarChart2, Sparkles } from 'lucide-react';
 import api from '../api';
@@ -10,10 +11,9 @@ import { io } from 'socket.io-client';
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
 function getColor(score) {
-  if (score >= 80) return "#10b981"; // Emerald
-  if (score >= 60) return "#f59e0b"; // Amber
-  if (score >= 40) return "#f43f5e"; // Rose
-  return "#be123c"; // Dark Rose
+  if (score >= 75) return "#a7f3d0"; // Lighter Emerald for transparency
+  if (score >= 45) return "#f59e0b"; // Orange (Amber)
+  return "#ef4444"; // Red (Rose)
 }
 
 export default function MapboxMap({ center, data: items = [], onAreaClick, type = 'issues' }) {
@@ -31,6 +31,7 @@ export default function MapboxMap({ center, data: items = [], onAreaClick, type 
 
   const [activeDisposalBin, setActiveDisposalBin] = useState(null);
   const [showDisposalToast, setShowDisposalToast] = useState(false);
+  const [hoveredWardId, setHoveredWardId] = useState(null);
 
   useEffect(() => {
     fetch("/data/wards.geojson")
@@ -175,8 +176,26 @@ export default function MapboxMap({ center, data: items = [], onAreaClick, type 
           }, 2000);
         } catch (e) { console.warn(e); }
 
-        setFleetRoute(res.data.route);
-        animateTruck(res.data.route);
+        // Fetch road-snapped geometry from Mapbox
+        const waypoints = [[77.5946, 12.9716], ...res.data.route.map(r => r.coords)];
+        const routeStr = waypoints.map(w => w.join(',')).join(';');
+        
+        try {
+          const dirRes = await fetch(`https://api.mapbox.com/directions/v5/mapbox/driving/${routeStr}?geometries=geojson&overview=full&access_token=${MAPBOX_TOKEN}`);
+          const dirData = await dirRes.json();
+          
+          if (dirData.routes && dirData.routes[0]) {
+            const fullCoords = dirData.routes[0].geometry.coordinates;
+            setFleetRoute(fullCoords);
+            animateTruck(fullCoords, res.data.route);
+          } else {
+            setFleetRoute(res.data.route.map(r => r.coords));
+            animateTruck(res.data.route.map(r => r.coords), res.data.route);
+          }
+        } catch (e) {
+          setFleetRoute(res.data.route.map(r => r.coords));
+          animateTruck(res.data.route.map(r => r.coords), res.data.route);
+        }
       } else {
         alert("All sectors clear. No collection required.");
       }
@@ -185,60 +204,40 @@ export default function MapboxMap({ center, data: items = [], onAreaClick, type 
     }
   };
 
-  const animateTruck = (route) => {
+  const animateTruck = (coords, originalRoute) => {
     setIsDeploying(true);
-    let currentWaypoint = 0;
-    let progress = 0;
+    let step = 0;
     
-    // Start from Bangalore Center Depot
-    const depotPos = [77.5946, 12.9716];
-    
-    const step = () => {
-      const start = currentWaypoint === 0 ? depotPos : route[currentWaypoint - 1].coords;
-      const end = route[currentWaypoint].coords;
-      
-      const lng = start[0] + (end[0] - start[0]) * progress;
-      const lat = start[1] + (end[1] - start[1]) * progress;
-      
-      setTruckPos({ lng, lat });
-      
-      progress += 0.03; // Increased speed (was 0.01)
-      
-      if (progress >= 1) {
-        progress = 0;
-        currentWaypoint++;
-      }
-      
-      if (currentWaypoint < route.length) {
-        requestAnimationFrame(step);
-      } else {
-        // Animation finished
+    const frame = () => {
+      if (step >= coords.length) {
         setTimeout(async () => {
           setIsDeploying(false);
           setFleetRoute(null);
           setTruckPos(null);
           
-          // Identify only the bins that were on this route
-          const cleanedBinIds = route.filter(p => p.type === 'bin').map(p => p.id);
-
-          // Rapidly update local UI state for specific bins only
+          const cleanedBinIds = originalRoute.filter(p => p.type === 'bin').map(p => p.id);
           setBins(prev => prev.map(b => 
             cleanedBinIds.includes(b.binId) ? { ...b, fillLevel: 0, status: 'normal' } : b
           ));
 
-          // Reset specific bins on the backend
           try {
             await api.post('/iot/reset', { binIds: cleanedBinIds });
             setShowSuccess(true);
             setTimeout(() => setShowSuccess(false), 3000);
-          } catch (err) {
-            console.error('Reset Bins Error:', err);
-          }
+          } catch (err) { console.error('Reset Bins Error:', err); }
         }, 500);
+        return;
       }
+
+      const [lng, lat] = coords[step];
+      setTruckPos({ lng, lat });
+      
+      // Speed multiplier (skip steps for faster animation on long routes)
+      step += Math.max(1, Math.floor(coords.length / 100)); 
+      requestAnimationFrame(frame);
     };
     
-    requestAnimationFrame(step);
+    requestAnimationFrame(frame);
   };
 
   const aggregatedData = useMemo(() => {
@@ -264,7 +263,23 @@ export default function MapboxMap({ center, data: items = [], onAreaClick, type 
     });
 
     const finalMarkers = markersWithCounts.map(m => {
-      const dynamicScore = type === 'issues' ? Math.max(10, 100 - (m.count * 15)) : 100;
+      let dynamicScore;
+      if (type === 'issues') {
+        dynamicScore = Math.max(10, 100 - (m.count * 30)); // 0->100, 1->70, 2->40, 3->10
+      } else if (type === 'sustainability') {
+        // Deterministic mock score based on zoneId to make it look varied but stable
+        const hash = String(m.zoneId || '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        if (hash % 17 === 0) {
+          dynamicScore = 15 + (hash % 25); // Rare Red
+        } else if (hash % 5 === 0) {
+          dynamicScore = 48 + (hash % 20); // Occasional Orange
+        } else {
+          dynamicScore = 78 + (hash % 23); // Common Green
+        }
+      } else {
+        dynamicScore = 100;
+      }
+
       return {
         ...m,
         wardCount: m.count,
@@ -297,10 +312,20 @@ export default function MapboxMap({ center, data: items = [], onAreaClick, type 
     id: 'ward-extrusion',
     type: 'fill-extrusion',
     paint: {
-      'fill-extrusion-color': ['get', 'color'],
-      'fill-extrusion-height': ['get', 'height'],
-      'fill-extrusion-base': 0,
-      'fill-extrusion-opacity': (showBins || isDeploying) ? 0.2 : 0.5, 
+      'fill-extrusion-color': [
+        'interpolate', ['linear'], ['get', 'score'],
+        0, '#ef4444',
+        50, '#f59e0b',
+        100, '#00e5a0'
+      ],
+      'fill-extrusion-height': [
+        'interpolate', ['linear'], ['zoom'],
+        10, ['max', 50, ['get', 'height']],
+        14, ['+', ['max', 50, ['get', 'height']], ['case', ['==', ['get', 'zone_id'], hoveredWardId], 400, 0]]
+      ],
+      'fill-extrusion-base': 2,
+      'fill-extrusion-opacity': 0.6,
+      'fill-extrusion-height-transition': { duration: 500 }
     }
   };
 
@@ -332,14 +357,18 @@ export default function MapboxMap({ center, data: items = [], onAreaClick, type 
     return {
       ...aggregatedData.zones,
       features: aggregatedData.zones.features.map(f => {
-        const score = f.properties.score || 100;
-        const count = f.properties.ward_count || 0;
-        const height = type === 'issues' ? (count * 200) : (score * 15);
+        const score = Number(f.properties.score || 100);
+        const count = Number(f.properties.ward_count || 0);
+        // Ensure all zones have height, but boost problem areas
+        const height = type === 'issues' 
+          ? (count * 300 + 100) 
+          : (score * 12);
         return {
           ...f,
           properties: {
             ...f.properties,
             color: getColor(score),
+            score: score,
             height: height
           }
         };
@@ -347,10 +376,11 @@ export default function MapboxMap({ center, data: items = [], onAreaClick, type 
     };
   }, [aggregatedData.zones, type]);
   
-  // ── Theme Configuration (Forced Dark) ──
-  const isDay = false;
-  const mapStyle = 'mapbox://styles/mapbox/dark-v11';
-  const fogColor = '#242b3b';
+  // ── Theme Configuration (Synced with Global Theme) ──
+  const { theme } = useTheme();
+  const isDay = theme === 'light';
+  const mapStyle = isDay ? 'mapbox://styles/mapbox/light-v11' : 'mapbox://styles/mapbox/dark-v11';
+  const fogColor = isDay ? '#f8fafc' : '#242b3b';
 
   const buildingLayer = {
     id: '3d-buildings',
@@ -393,19 +423,39 @@ export default function MapboxMap({ center, data: items = [], onAreaClick, type 
     }
   };
 
+  const labelLayerOverride = {
+    id: 'place-label-white',
+    type: 'symbol',
+    source: 'composite',
+    'source-layer': 'place_label',
+    paint: {
+      'text-color': '#ffffff',
+      'text-halo-color': 'rgba(0,0,0,0.5)',
+      'text-halo-width': 1
+    }
+  };
+
   const onMapClick = (e) => {
     if (e.features && e.features.length > 0) {
       const feature = e.features[0];
       if (onAreaClick) {
-        onAreaClick(e.lngLat.lat, e.lngLat.lng, feature.properties.zone_name || "Sector");
+        onAreaClick(e.lngLat.lat, e.lngLat.lng, feature.properties.zone_name || "Sector", null, feature.properties.zone_id);
       }
+    }
+  };
+
+  const onMapHover = (e) => {
+    if (e.features && e.features.length > 0) {
+      setHoveredWardId(e.features[0].properties.zone_id);
+    } else {
+      setHoveredWardId(null);
     }
   };
 
   const activeMode = showBins ? 'bins' : isDeploying ? 'fleet' : 'live';
 
   const modeConfig = {
-    live:     { label: 'Live Feed',    icon: Activity,  color: '#00e5a0', bg: 'rgba(0,229,160,0.12)',  border: 'rgba(0,229,160,0.3)',  desc: 'Real-time environmental issues reported by citizens across the city.' },
+    live:     { label: 'Live Feed',    icon: Activity,  color: '#00e5a0', bg: 'rgba(255,255,255,0.03)',  border: 'rgba(255,255,255,0.08)',  desc: 'Real-time environmental issues reported by citizens across the city.' },
 
     bins:     { label: 'Smart Bins',   icon: Database,  color: '#3b82f6', bg: 'rgba(59,130,246,0.12)', border: 'rgba(59,130,246,0.3)',  desc: 'Live IoT sensors tracking fill levels across 30 city containers.' },
     fleet:    { label: 'Fleet Active', icon: Truck,     color: '#f97316', bg: 'rgba(249,115,22,0.12)', border: 'rgba(249,115,22,0.3)',  desc: 'Optimizing collection routes and dispatching units to full bins.' },
@@ -427,9 +477,9 @@ export default function MapboxMap({ center, data: items = [], onAreaClick, type 
       {showBins && bins.length > 0 && (
         <div style={{
           position: 'absolute', top: 40, right: 16, zIndex: 50, width: 220,
-          background: 'rgba(8,14,26,0.92)', backdropFilter: 'blur(16px)',
-          border: '1px solid rgba(59,130,246,0.2)', borderRadius: 16,
-          padding: '14px 16px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+          background: 'var(--color-surface-elevated)', backdropFilter: 'blur(16px)',
+          border: '1px solid var(--color-border)', borderRadius: 16,
+          padding: '14px 16px', boxShadow: 'var(--shadow-main)',
         }}>
           {/* Header */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
@@ -437,18 +487,18 @@ export default function MapboxMap({ center, data: items = [], onAreaClick, type 
               <BarChart2 size={14} color="#3b82f6" />
             </div>
             <div>
-              <div style={{ fontSize: 11, fontWeight: 800, color: '#e2e8f0', letterSpacing: '0.04em', textTransform: 'uppercase' }}>IoT Dashboard</div>
-              <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', fontWeight: 500 }}>{binStats.total} sensors active</div>
+              <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>IoT Dashboard</div>
+              <div style={{ fontSize: 9, color: 'var(--color-text-dim)', fontWeight: 500 }}>{binStats.total} sensors active</div>
             </div>
           </div>
 
           {/* City capacity bar */}
           <div style={{ marginBottom: 14 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-              <span style={{ fontSize: 9, fontWeight: 600, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>City Capacity Used</span>
-              <span style={{ fontSize: 10, fontWeight: 800, color: binStats.avg > 70 ? '#ef4444' : binStats.avg > 50 ? '#eab308' : '#22c55e' }}>{binStats.avg}%</span>
+              <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--color-text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>City Capacity Used</span>
+              <span style={{ fontSize: 10, fontWeight: 800, color: binStats.avg > 70 ? 'var(--color-danger)' : binStats.avg > 50 ? '#eab308' : 'var(--color-primary)' }}>{binStats.avg}%</span>
             </div>
-            <div style={{ height: 6, borderRadius: 99, background: 'rgba(255,255,255,0.07)', overflow: 'hidden' }}>
+            <div style={{ height: 6, borderRadius: 99, background: 'var(--color-border)', overflow: 'hidden' }}>
               <div style={{ width: `${binStats.avg}%`, height: '100%', borderRadius: 99, background: binStats.avg > 70 ? 'linear-gradient(90deg,#ef4444,#b91c1c)' : binStats.avg > 50 ? 'linear-gradient(90deg,#eab308,#ca8a04)' : 'linear-gradient(90deg,#22c55e,#16a34a)', transition: 'width 1s ease' }} />
             </div>
           </div>
@@ -456,16 +506,16 @@ export default function MapboxMap({ center, data: items = [], onAreaClick, type 
           {/* Status breakdown */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {[
-              { label: 'Full (≥90%)', count: binStats.full, color: '#ef4444', bg: 'rgba(239,68,68,0.1)', Icon: AlertTriangle },
+              { label: 'Full (≥90%)', count: binStats.full, color: 'var(--color-danger)', bg: 'var(--color-danger-glow)', Icon: AlertTriangle },
               { label: 'Warning (≥70%)', count: binStats.warning, color: '#eab308', bg: 'rgba(234,179,8,0.1)', Icon: Clock },
-              { label: 'OK (<70%)', count: binStats.ok, color: '#22c55e', bg: 'rgba(34,197,94,0.1)', Icon: CheckCircle },
+              { label: 'OK (<70%)', count: binStats.ok, color: 'var(--color-primary)', bg: 'var(--color-primary-glow)', Icon: CheckCircle },
             ].map(({ label, count, color, bg, Icon: IC }) => (
               <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', background: bg, borderRadius: 10, border: `1px solid ${color}22` }}>
                 <IC size={12} color={color} />
-                <span style={{ flex: 1, fontSize: 10, color: 'rgba(255,255,255,0.6)', fontWeight: 500 }}>{label}</span>
+                <span style={{ flex: 1, fontSize: 10, color: 'var(--color-text-muted)', fontWeight: 600 }}>{label}</span>
                 <span style={{ fontSize: 13, fontWeight: 800, color }}>{count}</span>
                 {/* Mini bar */}
-                <div style={{ width: 28, height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.07)', overflow: 'hidden', flexShrink: 0 }}>
+                <div style={{ width: 28, height: 4, borderRadius: 99, background: 'var(--color-border)', overflow: 'hidden', flexShrink: 0 }}>
                   <div style={{ width: `${binStats.total ? (count / binStats.total) * 100 : 0}%`, height: '100%', background: color, borderRadius: 99 }} />
                 </div>
               </div>
@@ -473,7 +523,7 @@ export default function MapboxMap({ center, data: items = [], onAreaClick, type 
           </div>
 
           {/* Divider + last update */}
-          <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.06)', fontSize: 9, color: 'rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center', gap: 4 }}>
+          <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid var(--color-border)', fontSize: 9, color: 'var(--color-text-dim)', display: 'flex', alignItems: 'center', gap: 4 }}>
             <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 4px #22c55e' }} />
             Live • Updates every 10s
           </div>
@@ -514,33 +564,28 @@ export default function MapboxMap({ center, data: items = [], onAreaClick, type 
                 display: 'flex', alignItems: 'center', gap: 8,
                 padding: '8px 12px',
                 borderRadius: 12,
-                border: `1px solid ${isActive ? color : 'rgba(255,255,255,0.07)'}`,
-                background: isActive ? `rgba(${color === '#00e5a0' ? '0,229,160' : color === '#a855f7' ? '168,85,247' : '59,130,246'},0.15)` : 'rgba(10,15,24,0.85)',
-                backdropFilter: 'blur(12px)',
+                border: `1px solid ${isActive ? color : 'var(--color-border)'}`,
+                background: isActive ? (mode === 'live' ? 'rgba(255,255,255,0.06)' : `rgba(${color === '#00e5a0' ? '0,229,160' : color === '#a855f7' ? '168,85,247' : '59,130,246'},0.12)`) : 'rgba(255,255,255,0.02)',
+                backdropFilter: 'blur(20px)',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
-                boxShadow: isActive ? `0 0 16px ${color}2a` : 'none',
-                WebkitBackdropFilter: 'blur(12px)',
+                boxShadow: isActive ? `0 4px 16px ${color}1a` : 'none',
+                WebkitBackdropFilter: 'blur(20px)',
               }}
             >
               <div style={{
                 width: 26, height: 26, borderRadius: 8,
-                background: isActive ? color : 'rgba(255,255,255,0.06)',
+                background: isActive ? color : 'var(--color-border)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 flexShrink: 0,
                 transition: 'all 0.2s ease',
               }}>
-                <Icon size={13} color={isActive ? '#000' : color} strokeWidth={2.5} />
+                <Icon size={13} color={isActive ? (isDay ? '#fff' : '#000') : color} strokeWidth={2.5} />
               </div>
               <div style={{ textAlign: 'left' }}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: isActive ? color : '#e2e8f0', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                <div style={{ fontSize: 10, fontWeight: 800, color: isActive ? '#fff' : 'var(--color-text)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
                   {modeConfig[mode].label}
                 </div>
-                {isActive && (
-                  <div style={{ fontSize: 8.5, color: 'rgba(255,255,255,0.4)', marginTop: 2, lineHeight: 1.3 }}>
-                    {modeConfig[mode].desc}
-                  </div>
-                )}
               </div>
             </button>
           );
@@ -554,8 +599,8 @@ export default function MapboxMap({ center, data: items = [], onAreaClick, type 
             display: 'flex', alignItems: 'center', gap: 8,
             padding: '8px 12px',
             borderRadius: 12,
-            border: `1px solid ${isDeploying ? '#f97316' : 'rgba(249,115,22,0.3)'}`,
-            background: isDeploying ? 'rgba(249,115,22,0.25)' : 'rgba(10,15,24,0.85)',
+            border: `1px solid ${isDeploying ? '#f97316' : 'var(--color-border)'}`,
+            background: isDeploying ? 'rgba(249,115,22,0.25)' : 'var(--color-surface)',
             backdropFilter: 'blur(12px)',
             WebkitBackdropFilter: 'blur(12px)',
             cursor: isDeploying ? 'not-allowed' : 'pointer',
@@ -575,11 +620,6 @@ export default function MapboxMap({ center, data: items = [], onAreaClick, type 
             <div style={{ fontSize: 10, fontWeight: 700, color: isDeploying ? '#fdba74' : '#f97316', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
               {isDeploying ? 'Fleet Active' : 'Deploy Fleet'}
             </div>
-            {isDeploying && (
-              <div style={{ fontSize: 8.5, color: 'rgba(253,186,116,0.6)', marginTop: 2, lineHeight: 1.3 }}>
-                {modeConfig.fleet.desc}
-              </div>
-            )}
           </div>
         </button>
       </div>
@@ -633,9 +673,11 @@ export default function MapboxMap({ center, data: items = [], onAreaClick, type 
           'space-color': isDay ? '#87ceeb' : '#000000',
           'star-intensity': isDay ? 0 : 0.2
         }}
-        terrain={{ source: 'mapbox-dem', exaggeration: 1.5 }}
+        terrain={{ source: 'mapbox-dem', exaggeration: 1.1 }}
         interactiveLayerIds={['ward-extrusion']}
         onClick={onMapClick}
+        onMouseMove={onMapHover}
+        onMouseLeave={() => setHoveredWardId(null)}
       >
         <NavigationControl position="top-right" />
         <Source
@@ -647,10 +689,19 @@ export default function MapboxMap({ center, data: items = [], onAreaClick, type 
         />
         <Layer {...skyLayer} />
         <Layer {...buildingLayer} />
+        <Layer {...labelLayerOverride} />
         
         {mapboxZones && (
-          <Source id="wards" type="geojson" data={mapboxZones}>
-            <Layer {...extrusionLayer} />
+          <Source id="wards-source" type="geojson" data={mapboxZones}>
+            <Layer {...{
+              ...extrusionLayer, 
+              paint: { 
+                ...extrusionLayer.paint, 
+                'fill-extrusion-opacity': (showBins || isDeploying) ? 0 : (
+                  type === 'events' ? 0.15 : 0.35
+                )
+              } 
+            }} />
             <Layer {...lineLayer} />
           </Source>
         )}
@@ -660,7 +711,7 @@ export default function MapboxMap({ center, data: items = [], onAreaClick, type 
             type: 'Feature',
             geometry: {
               type: 'LineString',
-              coordinates: [[77.5946, 12.9716], ...fleetRoute.map(r => r.coords)]
+              coordinates: fleetRoute
             }
           }}>
             <Layer {...routeLayer} />
@@ -770,7 +821,7 @@ export default function MapboxMap({ center, data: items = [], onAreaClick, type 
             onClose={() => setSelectedBin(null)}
             closeButton={false}
           >
-            <div style={{ padding: 0, fontFamily: 'Inter, sans-serif', width: 200, background: 'rgba(8,14,26,0.97)', borderRadius: 12, border: '1px solid rgba(59,130,246,0.25)', overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.7)' }}>
+            <div style={{ padding: 0, fontFamily: 'var(--font-body)', width: 220, background: 'var(--color-surface-elevated)', borderRadius: 14, border: '1px solid var(--color-border)', overflow: 'hidden', boxShadow: 'var(--shadow-main)' }}>
               {/* Header */}
               {(() => {
                 const fill = Math.round(selectedBin.fillLevel);
@@ -780,21 +831,21 @@ export default function MapboxMap({ center, data: items = [], onAreaClick, type 
                 const statusLabel = isFull ? 'FULL' : isWarn ? 'WARNING' : 'OK';
                 return (
                   <>
-                    <div style={{ background: `${color}18`, padding: '10px 12px', borderBottom: `1px solid ${color}22`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ background: `${color}18`, padding: '10px 12px', borderBottom: `1px solid var(--color-border)`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <Trash2 size={13} color={color} />
-                        <span style={{ fontSize: 12, fontWeight: 800, color: '#f1f5f9' }}>{selectedBin.binId}</span>
+                        <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--color-text)' }}>{selectedBin.binId}</span>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ fontSize: 9, fontWeight: 700, color, background: `${color}20`, padding: '2px 7px', borderRadius: 99, border: `1px solid ${color}44` }}>{statusLabel}</span>
-                        <button onClick={() => setSelectedBin(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.3)', padding: 0, lineHeight: 1 }}><X size={12} /></button>
+                        <span style={{ fontSize: 9, fontWeight: 800, color, background: `${color}15`, padding: '2px 8px', borderRadius: 20, border: `1px solid ${color}33` }}>{statusLabel}</span>
+                        <button onClick={() => setSelectedBin(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-dim)', padding: 0, display: 'flex' }}><X size={14} /></button>
                       </div>
                     </div>
                     <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
                       {/* Fill bar */}
                       <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                          <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Fill Level</span>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+                          <span style={{ fontSize: 9, color: 'var(--color-text-dim)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Fill Level</span>
                           <span style={{ fontSize: 11, fontWeight: 800, color }}>{fill}%</span>
                         </div>
                         <div style={{ height: 5, borderRadius: 99, background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
@@ -842,6 +893,8 @@ export default function MapboxMap({ center, data: items = [], onAreaClick, type 
         {!showBins && !isDeploying && items.map(item => {
            if (!item.location?.coordinates) return null;
            const [lng, lat] = item.location.coordinates;
+           const isSelected = selectedItem?._id === item._id;
+           
            return (
              <Marker 
                key={item._id} 
@@ -851,48 +904,26 @@ export default function MapboxMap({ center, data: items = [], onAreaClick, type 
                onClick={e => {
                  e.originalEvent.stopPropagation();
                  setSelectedItem(item);
-                 if (onAreaClick) onAreaClick(lat, lng, item.title);
+                 if (onAreaClick) onAreaClick(lat, lng, item.title, item);
                }}
              >
                <div style={{
-                 color: type === 'events' ? '#60a5fa' : '#f87171',
-                 filter: type === 'events' ? 'drop-shadow(0 0 8px rgba(96,165,250,0.8))' : 'drop-shadow(0 0 8px rgba(248,113,113,0.8))',
+                 color: isSelected ? '#00e5a0' : (type === 'events' ? '#60a5fa' : '#f87171'),
+                 filter: isSelected 
+                    ? `drop-shadow(0 0 12px #00e5a0)` 
+                    : (type === 'events' ? 'drop-shadow(0 0 8px rgba(96,165,250,0.8))' : 'drop-shadow(0 0 8px rgba(248,113,113,0.8))'),
                  cursor: 'pointer',
-                 transition: 'transform 0.2s ease-in-out',
+                 transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                 transform: isSelected ? 'scale(1.4) translateY(-6px)' : 'scale(1) translateY(0)',
                }}
-               onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.2) translateY(-4px)'}
-               onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1) translateY(0)'}
+               onMouseEnter={(e) => { if(!isSelected) e.currentTarget.style.transform = 'scale(1.2) translateY(-4px)'; }}
+               onMouseLeave={(e) => { if(!isSelected) e.currentTarget.style.transform = 'scale(1) translateY(0)'; }}
                >
-                 <MapPin size={32} strokeWidth={1.5} fill="currentColor" color="white" />
+                 <MapPin size={32} strokeWidth={isSelected ? 2.5 : 1.5} fill="currentColor" color="white" />
                </div>
              </Marker>
            );
         })}
-
-        {selectedItem && selectedItem.location && (
-          <Popup
-            longitude={selectedItem.location.coordinates[0]}
-            latitude={selectedItem.location.coordinates[1]}
-            anchor="bottom"
-            offset={16}
-            onClose={() => setSelectedItem(null)}
-            closeButton={false}
-          >
-            <div style={{ padding: '12px', fontFamily: 'Inter, sans-serif', maxWidth: '220px', background: 'rgba(15, 23, 42, 0.9)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', color: 'white', backdropFilter: 'blur(8px)' }}>
-              <h4 style={{ margin: '0 0 6px', color: '#f8fafc', fontWeight: '600', fontSize: '14px' }}>{selectedItem.title}</h4>
-              <p style={{ margin: '0 0 12px', fontSize: '12px', color: '#94a3b8', lineHeight: '1.4' }}>{selectedItem.description}</p>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', alignItems: 'center' }}>
-                <span style={{ textTransform: 'uppercase', fontWeight: 600, color: type === 'events' ? '#60a5fa' : '#f87171', letterSpacing: '0.5px' }}>{selectedItem.category}</span>
-                <span style={{ cursor: 'pointer', color: '#38bdf8', textDecoration: 'none', fontWeight: 500, padding: '4px 8px', background: 'rgba(56, 189, 248, 0.1)', borderRadius: '4px', transition: 'background 0.2s' }} 
-                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(56, 189, 248, 0.2)'}
-                      onMouseLeave={e => e.currentTarget.style.background = 'rgba(56, 189, 248, 0.1)'}
-                      onClick={() => navigate(`/${type === 'issues' ? 'feed' : 'events'}?id=${selectedItem._id}`)}>
-                  VIEW DETAILS
-                </span>
-              </div>
-            </div>
-          </Popup>
-        )}
       </Map>
 
     </div>

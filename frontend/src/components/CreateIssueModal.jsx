@@ -98,7 +98,7 @@ function IssueFormFields({ formData, setFormData }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
       <div>
-        <SectionLabel icon={FileText}>Anomaly Title</SectionLabel>
+        <SectionLabel icon={FileText}>ISSUE TITLE</SectionLabel>
         <Input
           required placeholder="Sector Observation Label"
           value={formData.title} onChange={set("title")}
@@ -109,7 +109,7 @@ function IssueFormFields({ formData, setFormData }) {
         <SectionLabel icon={AlignLeft}>Description</SectionLabel>
         <Textarea
           required rows={5}
-          placeholder="Detailed impact analysis of the anomaly observed..."
+          placeholder="Detailed impact analysis of the issue observed..."
           value={formData.description} onChange={set("description")}
         />
       </div>
@@ -490,13 +490,8 @@ function SuccessView() {
       </div>
       <h3 style={{
         fontSize: "1.1rem", fontWeight: 800, textTransform: "uppercase",
-        letterSpacing: "0.1em", color: "#f0fdf4", fontFamily: "'DM Mono', monospace", margin: 0,
-      }}>Data Transmitted</h3>
-      <p style={{
-        fontSize: 10, fontWeight: 700, letterSpacing: "0.18em",
-        textTransform: "uppercase", color: G.mutedTxt, margin: 0,
-        fontFamily: "'DM Mono', monospace",
-      }}>Planetary archive updated successfully.</p>
+        letterSpacing: "0.1rem", color: "#f0fdf4", fontFamily: "'DM Mono', monospace", margin: 0,
+      }}>Uploaded successfully</h3>
       <div style={{
         width: 160, height: 2, background: "rgba(255,255,255,0.08)", borderRadius: 2, overflow: "hidden",
       }}>
@@ -535,7 +530,7 @@ function SubmitButton({ loading }) {
       }}>
         {loading
           ? <><Loader2 size={16} style={{ animation: "spin 0.7s linear infinite" }} /> Syncing Data…</>
-          : <><Upload size={15} /> Transmit Report to Sector Command</>
+          : <><Upload size={15} /> Upload Issue</>
         }
       </div>
       {hov && !loading && (
@@ -798,7 +793,7 @@ const CreateIssueModal = ({ isOpen, onClose, onSuccess }) => {
               <h2 style={{
                 fontSize: "1.25rem", fontWeight: 800, textTransform: "uppercase",
                 letterSpacing: "0.06em", color: "#f0fdf4",
-              }}>Environmental Anomaly Detection</h2>
+              }}>ENVIRONMENTAL ISSUE DETECTION</h2>
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>

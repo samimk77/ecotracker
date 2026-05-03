@@ -16,18 +16,18 @@ const LIBRARIES = ['places'];
    DESIGN TOKENS
 ───────────────────────────────────────────── */
 const TOKEN = {
-  bg: '#07090f',
-  surface: '#0e1118',
-  card: '#111620',
-  border: 'rgba(255,255,255,0.06)',
-  borderHover: 'rgba(255,255,255,0.12)',
+  bg: '#050806',
+  surface: '#0a0f0c',
+  card: '#0c120e',
+  border: '#1a261f',
+  borderHover: 'rgba(0,229,160,0.3)',
   accent: '#00e5a0',
   accentDim: 'rgba(0,229,160,0.1)',
   accentGlow: 'rgba(0,229,160,0.2)',
-  danger: '#ff4d4d',
-  muted: 'rgba(255,255,255,0.35)',
-  mutedMid: 'rgba(255,255,255,0.55)',
-  white: '#ffffff',
+  danger: '#e11d48',
+  muted: '#64748b',
+  mutedMid: '#94a3b8',
+  white: '#e2e8f0',
 };
 
 /* ─────────────────────────────────────────────
@@ -111,7 +111,7 @@ const ProgressBar = ({ value, total }) => {
   const pct = Math.min(100, Math.round((value / total) * 100));
   return (
     <div style={{ width: '100%' }}>
-      <div style={{ height: 3, background: 'rgba(255,255,255,0.07)', borderRadius: 2, overflow: 'hidden' }}>
+    <div style={{ height: 3, background: 'var(--color-border)', borderRadius: 2, overflow: 'hidden' }}>
         <div style={{
           height: '100%', width: `${pct}%`, borderRadius: 2,
           background: `linear-gradient(90deg, ${TOKEN.accent}, rgba(0,229,160,0.6))`,
@@ -137,122 +137,98 @@ const EventCard = ({ event, onRsvp, onDetail }) => {
   const isPast = event.status === 'past';
   const isLive = event.status === 'live';
 
+  // Determine the status text based on mockup
+  let statusText = 'UPCOMING';
+  if (isLive) statusText = 'ACTIVE NOW';
+  else if (isPast) statusText = 'ENDED';
+  else statusText = 'NEXT WEEK'; // Just a placeholder matching the mockup vibe, real app might calculate this
+
   return (
     <div
       onClick={() => onDetail(event)}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
       style={{
-        background: TOKEN.card,
-        border: `1px solid ${hover ? (isLive ? 'rgba(255,77,77,0.35)' : TOKEN.borderHover) : (isLive ? 'rgba(255,77,77,0.2)' : TOKEN.border)}`,
-        borderRadius: 14,
-        overflow: 'hidden',
+        background: '#0d1117',
+        border: '1px solid rgba(255, 255, 255, 0.05)',
+        borderRadius: 16,
+        padding: '20px 24px',
+        display: 'flex', flexDirection: 'column', gap: 16,
         cursor: 'pointer',
-        transition: 'all 0.22s cubic-bezier(0.16,1,0.3,1)',
-        transform: hover ? 'translateY(-2px)' : 'translateY(0)',
-        display: 'flex', flexDirection: 'column',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.2)'
       }}
     >
-      {/* Card top strip */}
-      <div style={{
-        padding: '20px 20px 16px',
-        background: hover
-          ? 'linear-gradient(135deg, rgba(0,229,160,0.04) 0%, transparent 100%)'
-          : 'transparent',
-        transition: 'background 0.3s',
-        borderBottom: `1px solid ${TOKEN.border}`,
-      }}>
-        {/* Header row */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <CategoryBadge cat={event.cat} />
-            {isLive && <LivePill />}
-            {!isLive && <XPBadge xp={event.xp} />}
-          </div>
-          <div style={{ fontSize: 28, lineHeight: 1, opacity: hover ? 1 : 0.5, transition: 'opacity 0.2s, transform 0.2s', transform: hover ? 'scale(1.1)' : 'scale(1)' }}>
-            {event.emoji}
-          </div>
-        </div>
-
+      {/* Header row: Title & Status */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
         <h3 style={{
-          margin: 0, fontSize: 15, fontWeight: 700, letterSpacing: '-0.01em',
-          color: hover ? TOKEN.white : TOKEN.mutedMid,
-          transition: 'color 0.2s',
-          lineHeight: 1.3,
+          margin: 0, fontSize: 18, fontWeight: 800, letterSpacing: '-0.02em',
+          color: '#f0f6fc',
+          lineHeight: 1.3, flex: 1
         }}>
           {event.title}
         </h3>
-        <p style={{ margin: '8px 0 0', fontSize: 12, color: TOKEN.muted, lineHeight: 1.55, fontWeight: 400,
-          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+        
+        <div style={{
+          background: isLive ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.03)', 
+          border: `1px solid ${isLive ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.08)'}`,
+          color: isLive ? '#f0f6fc' : '#8b949e', 
+          fontSize: 10, fontWeight: 800, letterSpacing: '0.08em',
+          padding: '6px 10px', borderRadius: 8, textTransform: 'uppercase', flexShrink: 0,
+          display: 'flex', alignItems: 'center', gap: 6,
+          backdropFilter: 'blur(8px)'
         }}>
-          {event.desc}
-        </p>
+          {isLive && <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#f0f6fc', boxShadow: `0 0 8px rgba(255,255,255,0.5)` }} />}
+          {statusText}
+        </div>
       </div>
 
-      {/* Card meta */}
-      <div style={{ padding: '14px 20px', display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-          <MetaRow icon={Calendar} label={event.date} />
-          <MetaRow icon={Clock} label={event.time} />
-          <MetaRow icon={MapPin} label={event.ward} />
-          <MetaRow icon={Users} label={`${event.reg} joined`} />
-        </div>
-
-        <div style={{ marginTop: 4 }}>
-          <ProgressBar value={event.reg} total={event.total} />
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 5, fontSize: 10, color: TOKEN.muted }}>
-            <span style={{ fontWeight: 600 }}>{event.reg} responders</span>
-            <span style={{ color: TOKEN.accent, fontWeight: 700 }}>{Math.round((event.reg / event.total) * 100)}%</span>
+      {/* Meta info: Date & Location */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, color: '#94a3b8', fontSize: 13, fontWeight: 500 }}>
+          <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(255,255,255,0.03)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Calendar size={14} color="#cbd5e1" />
           </div>
+          {event.date} <span style={{ opacity: 0.5 }}>•</span> {event.time}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, color: '#94a3b8', fontSize: 13, fontWeight: 500 }}>
+          <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(255,255,255,0.03)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <MapPin size={14} color="#cbd5e1" />
+          </div>
+          {event.venue || event.ward}
         </div>
       </div>
 
-      {/* Card footer */}
-      <div style={{
-        padding: '12px 20px',
-        borderTop: `1px solid ${TOKEN.border}`,
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      {/* Progress & Stats */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+          <div style={{ fontSize: 12, color: '#f1f5f9', fontWeight: 700 }}>
+            <span style={{ color: '#f0f6fc', fontSize: 14 }}>{event.reg}</span> joined
+          </div>
+          <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Goal: {event.total}</div>
+        </div>
+        <div style={{ height: 6, background: 'rgba(255,255,255,0.05)', borderRadius: 6, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.02)' }}>
           <div style={{
-            width: 28, height: 28, borderRadius: '50%',
-            background: 'rgba(255,255,255,0.08)', 
-            border: `1px solid ${TOKEN.border}`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 10, fontWeight: 800, color: TOKEN.accent,
-            overflow: 'hidden'
-          }}>
-            {event.organizer?.avatar ? (
-              <img src={event.organizer.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            ) : (
-              event.owner.charAt(0)
-            )}
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontSize: 8, color: TOKEN.muted, fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Organized by</span>
-            <span style={{ fontSize: 11, color: TOKEN.white, fontWeight: 600 }}>{event.owner}</span>
-          </div>
+            height: '100%', width: `${Math.min(100, Math.round((event.reg / event.total) * 100))}%`, borderRadius: 6,
+            background: 'linear-gradient(90deg, #3b82f6, #60a5fa)',
+            boxShadow: '0 0 10px rgba(59, 130, 246, 0.5)',
+            transition: 'width 1s cubic-bezier(0.16,1,0.3,1)',
+          }} />
         </div>
-
-        <button
-          onClick={(e) => { e.stopPropagation(); if (!isPast) onRsvp(event.id); }}
-          style={{
-            padding: '6px 14px', borderRadius: 7, border: 'none',
-            fontSize: 10, fontWeight: 800, letterSpacing: '0.08em',
-            textTransform: 'uppercase', cursor: isPast ? 'default' : 'pointer',
-            transition: 'all 0.18s',
-            background: isPast
-              ? 'rgba(255,255,255,0.04)'
-              : event.rsvped
-                ? TOKEN.accentDim
-                : TOKEN.accent,
-            color: isPast ? TOKEN.muted : event.rsvped ? TOKEN.accent : '#000',
-            outline: event.rsvped && !isPast ? `1px solid rgba(0,229,160,0.3)` : 'none',
-          }}
-        >
-          {isPast ? 'Ended' : event.rsvped ? '✓ Joined' : 'RSVP'}
-        </button>
       </div>
+
+      {/* Action Button */}
+      <button
+        onClick={(e) => { e.stopPropagation(); if (!isPast) onRsvp(event.id); }}
+        style={{
+          width: '100%', padding: '14px', borderRadius: 10, border: 'none',
+          fontSize: 13, fontWeight: 800, letterSpacing: '0.04em',
+          cursor: isPast ? 'default' : 'pointer',
+          background: isPast ? 'rgba(255,255,255,0.05)' : (event.rsvped ? 'rgba(0, 229, 160, 0.1)' : '#30363d'),
+          color: isPast ? '#64748b' : (event.rsvped ? TOKEN.accent : '#f0f6fc'),
+          border: event.rsvped ? `1px solid rgba(0, 229, 160, 0.3)` : '1px solid rgba(255,255,255,0.1)',
+          marginTop: 8
+        }}
+      >
+        {isPast ? 'Ended' : event.rsvped ? '✓ Joined' : 'Join Event'}
+      </button>
     </div>
   );
 };
@@ -492,7 +468,7 @@ const DetailModal = ({ event, onClose, onRsvp }) => {
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)' }} />
+      <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(12px)' }} />
       <div style={{
         position: 'relative', zIndex: 10000, width: '100%', maxWidth: 680,
         background: TOKEN.card, border: `1px solid ${TOKEN.border}`,
@@ -519,7 +495,7 @@ const DetailModal = ({ event, onClose, onRsvp }) => {
               </h2>
             </div>
           </div>
-          <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.06)', border: `1px solid ${TOKEN.border}`, borderRadius: 8, padding: 7, cursor: 'pointer', color: TOKEN.muted, display: 'flex' }}>
+          <button onClick={onClose} style={{ background: 'var(--color-border)', border: `1px solid var(--color-border)`, borderRadius: 8, padding: 7, cursor: 'pointer', color: TOKEN.muted, display: 'flex' }}>
             <X size={16} />
           </button>
         </div>
@@ -582,7 +558,7 @@ const DetailModal = ({ event, onClose, onRsvp }) => {
                 fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase',
                 cursor: isPast ? 'default' : 'pointer',
                 background: isPast
-                  ? 'rgba(255,255,255,0.05)'
+                  ? 'var(--color-border)'
                   : event.rsvped
                     ? TOKEN.accentDim
                     : TOKEN.accent,
@@ -591,7 +567,7 @@ const DetailModal = ({ event, onClose, onRsvp }) => {
                 transition: 'all 0.2s',
               }}
             >
-              {isPast ? 'Event Ended' : event.rsvped ? '✓ You Are Registered' : 'RSVP to this Event'}
+              {isPast ? 'Event Ended' : event.rsvped ? '✓ MISSION JOINED' : 'JOIN THIS MISSION'}
             </button>
           </div>
         </div>
@@ -636,7 +612,7 @@ const CreateModal = ({ onClose, data, setData, onSubmit }) => {
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)' }} />
+      <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(12px)' }} />
       <div style={{
         position: 'relative', zIndex: 10000, width: '100%', maxWidth: 520,
         background: TOKEN.card, border: `1px solid ${TOKEN.border}`,
@@ -768,7 +744,7 @@ const CreateModal = ({ onClose, data, setData, onSubmit }) => {
       }}>
         <button onClick={onClose} style={{
           flex: 1, padding: '12px', borderRadius: 9,
-          background: 'transparent', border: `1px solid ${TOKEN.border}`,
+          background: 'transparent', border: `1px solid var(--color-border)`,
           color: TOKEN.muted, fontSize: 10, fontWeight: 800,
           letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer',
         }}>
@@ -805,6 +781,12 @@ const Events = () => {
   const [activeTab, setActiveTab] = useState('upcoming');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedWard, setSelectedWard] = useState('All Sectors');
+  
+  // Expose ward to window for Leaflet sync
+  useEffect(() => {
+    window.selectedEventsWard = selectedWard;
+  }, [selectedWard]);
   const [createOpen, setCreateOpen] = useState(false);
   const [detailEvent, setDetailEvent] = useState(null);
   const [events, setEvents] = useState([]);
@@ -877,7 +859,8 @@ const Events = () => {
     const matchTab = activeTab === 'mine'
       ? (e.ownerId === user?._id || e.rsvped)
       : e.status === activeTab;
-    return matchSearch && matchCat && matchTab;
+    const matchWard = selectedWard === 'All Sectors' || e.ward === selectedWard;
+    return matchSearch && matchCat && matchTab && matchWard;
   });
 
   const handleRsvp = async (id) => {
@@ -892,6 +875,10 @@ const Events = () => {
 
       if (detailEvent?.id === id) {
         setDetailEvent(prev => ({ ...prev, rsvped: joined, reg: count }));
+      }
+
+      if (res.data.user) {
+        setUser(prev => ({ ...prev, stats: res.data.user.stats }));
       }
 
       if (res.data.pointsGained > 0) {
@@ -954,124 +941,160 @@ const Events = () => {
   );
 
   return (
-    <div style={{ display: 'flex', height: '100vh', background: TOKEN.bg, color: TOKEN.white, fontFamily: 'system-ui, -apple-system, sans-serif', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', height: '100vh', background: TOKEN.bg, color: TOKEN.white, fontFamily: '"Inter", system-ui, -apple-system, sans-serif', overflow: 'hidden' }}>
       <style>{`
-        @keyframes livePulse {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.4; transform: scale(0.8); }
-        }
-        * { box-sizing: border-box; }
-        input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.25); }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
-        select option { background: #111620; color: #fff; }
-        
-        /* Calendar Icon Visibility */
-        input::-webkit-calendar-picker-indicator {
-          filter: invert(1);
-          opacity: 0.5;
-          cursor: pointer;
-          transition: opacity 0.2s;
-        }
-        input::-webkit-calendar-picker-indicator:hover {
-          opacity: 0.9;
-        }
       `}</style>
 
-      {/* ── Sidebar ── */}
-      <Sidebar selected={selectedCategory} onSelect={setSelectedCategory} user={user} events={events} />
+      {/* ── LEFT COLUMN: Events Feed ── */}
+      <div style={{ 
+        flex: 1, display: 'flex', flexDirection: 'column', 
+        borderRight: '1px solid #11291d', position: 'relative',
+        background: '#020604'
+      }}>
+        {/* Search Bar */}
+        <div style={{ padding: '20px 24px', borderBottom: '1px solid #11291d' }}>
+          <div style={{ position: 'relative' }}>
+            <Search size={14} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#608070' }} />
+            <input
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Search events, markers, or areas..."
+              style={{
+                width: '100%', padding: '10px 14px 10px 38px', borderRadius: 20,
+                background: '#06140b', border: '1px solid #11291d',
+                color: '#e2e8f0', fontSize: 13, outline: 'none',
+              }}
+            />
+          </div>
+        </div>
 
-      {/* ── Map Panel (left) + Events Content (center) ── */}
-      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+        <div style={{ padding: '24px 24px 16px', display: 'flex', flexDirection: 'column', gap: 20, flexShrink: 0 }}>
+          {/* Header */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h2 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: '#e2e8f0' }}>Community Events</h2>
+            <button
+              onClick={() => setCreateOpen(true)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px',
+                background: TOKEN.accent, color: '#000', border: 'none',
+                borderRadius: 8, fontSize: 11, fontWeight: 800, letterSpacing: '0.05em',
+                textTransform: 'uppercase', cursor: 'pointer',
+              }}
+            >
+              <Plus size={14} /> Post an Event
+            </button>
+          </div>
 
-        {/* ── Leaflet Map Panel — fixed left column ── */}
-        <div style={{
-          width: 360, flexShrink: 0, display: 'flex', flexDirection: 'column',
-          borderRight: `1px solid ${TOKEN.border}`, position: 'relative',
-        }}>
-          {/* Map label */}
+          {/* Filters */}
+          <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
+            {['All Events', 'Cleanup', 'Gardening', 'Town Hall'].map(cat => {
+              const active = selectedCategory === (cat === 'All Events' ? 'All' : cat);
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat === 'All Events' ? 'All' : cat)}
+                  style={{
+                    padding: '6px 14px', borderRadius: 20, border: `1px solid ${active ? TOKEN.accent : '#11291d'}`,
+                    background: active ? '#061c11' : 'transparent',
+                    color: active ? TOKEN.accent : '#608070',
+                    fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap', cursor: 'pointer', flexShrink: 0
+                  }}
+                >
+                  {cat}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Event Cards */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '0 24px 24px', display: 'flex', flexDirection: 'column' }}>
+          {filteredEvents.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {filteredEvents.map(event => (
+                <EventCard
+                  key={event.id}
+                  event={event}
+                  onRsvp={handleRsvp}
+                  onDetail={setDetailEvent}
+                />
+              ))}
+            </div>
+          ) : (
+            <EmptyState onReset={() => { setSearchQuery(''); setSelectedCategory('All'); }} />
+          )}
+        </div>
+      </div>
+
+      {/* ── RIGHT COLUMN: Map & Stats Sidebar ── */}
+      <div style={{ width: 520, flexShrink: 0, display: 'flex', flexDirection: 'column', background: '#0a0c10', borderLeft: '1px solid #1e293b', height: '100vh', overflow: 'hidden' }}>
+        {/* Map Area (Top Half) */}
+        <div style={{ height: '55%', position: 'relative', borderBottom: '1px solid #1e293b', padding: 16 }}>
+          <div style={{ width: '100%', height: '100%', borderRadius: 16, overflow: 'hidden', border: '1px solid #21262d' }}>
+            <LeafletMap 
+              center={{ lat: 12.9716, lng: 77.5946 }}
+              data={events.map(e => ({ ...e, location: e.location || { coordinates: [77.5946, 12.9716] } }))}
+              onItemClick={setDetailEvent}
+              onAreaClick={(lat, lng, wardName) => {
+                if (wardName) setSelectedWard(wardName);
+              }}
+              type="events"
+            />
+          </div>
+        </div>
+
+        {/* Stats Area (Bottom Half) */}
+        <div style={{ flex: 1, padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 12, overflowY: 'auto' }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: '#f8fafc', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+            Location Overview
+          </div>
+          
           <div style={{
-            position: 'absolute', top: 12, left: 12, zIndex: 1000,
-            background: 'rgba(11,15,26,0.85)', backdropFilter: 'blur(8px)',
-            border: `1px solid ${TOKEN.border}`, borderRadius: 8,
-            padding: '6px 12px', display: 'flex', alignItems: 'center', gap: 6,
-            fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: TOKEN.accent,
-            textTransform: 'uppercase',
+            background: '#0d1117', border: '1px solid #21262d', borderRadius: 10, padding: '10px 14px',
+            display: 'flex', alignItems: 'center', gap: 12
           }}>
-            <Map size={12} />
-            {events.length} Events On Map
+             <div style={{ width: 32, height: 32, borderRadius: 8, background: '#00e5a015', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+               <Map size={16} color={TOKEN.accent} />
+             </div>
+             <div>
+               <div style={{ fontSize: 14, fontWeight: 800, color: '#f8fafc', lineHeight: 1.2 }}>Bengaluru</div>
+               <select 
+                  value={selectedWard}
+                  onChange={(e) => setSelectedWard(e.target.value)}
+                  style={{ 
+                    fontSize: 11, color: TOKEN.accent, fontWeight: 600, marginTop: 2,
+                    background: 'transparent', border: 'none', cursor: 'pointer',
+                    outline: 'none', padding: 0, display: 'block'
+                  }}
+                >
+                  <option value="All Sectors">All Sectors</option>
+                  {[...new Set(events.map(e => e.ward))].filter(Boolean).sort().map(ward => (
+                    <option key={ward} value={ward} style={{ background: '#0d1117', color: '#fff' }}>{ward}</option>
+                  ))}
+                </select>
+             </div>
           </div>
-          <LeafletMap
-            center={{ lat: 12.9716, lng: 77.5946 }}
-            data={events.map(e => ({ ...e, location: e.location || { coordinates: [77.5946, 12.9716] } }))}
-            type="events"
-          />
-        </div>
-
-        {/* ── Events Content — center ── */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <SearchBar value={searchQuery} onChange={setSearchQuery} onCreate={() => setCreateOpen(true)} />
-          <TabBar active={activeTab} onChange={setActiveTab} />
-
-          {/* Content area */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: 24 }}>
-            {/* Hero banner — only on upcoming + no filter */}
-            {activeTab === 'upcoming' && !searchQuery && selectedCategory === 'All' && (
-              <div style={{
-                marginBottom: 24, padding: '28px 32px',
-                background: 'linear-gradient(135deg, rgba(0,229,160,0.08) 0%, rgba(0,229,160,0.02) 50%, transparent 100%)',
-                border: `1px solid rgba(0,229,160,0.12)`,
-                borderRadius: 16, position: 'relative', overflow: 'hidden',
-              }}>
-                <div style={{ position: 'absolute', top: -40, right: -40, width: 200, height: 200, borderRadius: '50%', background: 'rgba(0,229,160,0.04)', pointerEvents: 'none' }} />
-                <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.2em', color: TOKEN.accent, textTransform: 'uppercase', display: 'block', marginBottom: 10 }}>
-                  Community Action
-                </span>
-                <h2 style={{ margin: '0 0 10px', fontSize: 28, fontWeight: 900, letterSpacing: '-0.04em', color: TOKEN.white, lineHeight: 1.1 }}>
-                  Monitor · Report · Resolve
-                </h2>
-                <p style={{ margin: '0 0 20px', fontSize: 13, color: TOKEN.muted, maxWidth: 480, lineHeight: 1.65 }}>
-                  Join verified community initiatives in your ward. Earn XP, contribute to official records, and help make Bengaluru better.
-                </p>
-                <div style={{ display: 'flex', gap: 10 }}>
-                  <button style={{
-                    display: 'flex', alignItems: 'center', gap: 7, padding: '10px 20px',
-                    background: TOKEN.accent, color: '#000', border: 'none',
-                    borderRadius: 9, fontSize: 10, fontWeight: 800, letterSpacing: '0.1em',
-                    textTransform: 'uppercase', cursor: 'pointer',
-                  }}>
-                    <Zap size={13} /> Quick Join
-                  </button>
-                  <button style={{
-                    padding: '10px 20px', background: 'rgba(255,255,255,0.06)',
-                    border: `1px solid ${TOKEN.border}`, color: TOKEN.mutedMid,
-                    borderRadius: 9, fontSize: 10, fontWeight: 700,
-                    letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer',
-                  }}>
-                    Learn More
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {filteredEvents.length > 0 ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
-                {filteredEvents.map(event => (
-                  <EventCard
-                    key={event.id}
-                    event={event}
-                    onRsvp={handleRsvp}
-                    onDetail={setDetailEvent}
-                  />
-                ))}
-              </div>
-            ) : (
-              <EmptyState onReset={() => { setSearchQuery(''); setSelectedCategory('All'); }} />
-            )}
+          
+          <div style={{
+            background: '#0d1117', border: '1px solid #21262d', borderRadius: 10, padding: '12px',
+            display: 'flex', flexDirection: 'column', gap: 10
+          }}>
+             <div style={{ fontSize: 9, fontWeight: 800, color: '#8b949e', letterSpacing: '0.1em' }}>AREA STATS</div>
+             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+               <div style={{ background: '#161b22', padding: '10px', borderRadius: 8, border: '1px solid #30363d' }}>
+                 <div style={{ fontSize: 18, fontWeight: 800, color: '#f8fafc' }}>{filteredEvents.length}</div>
+                 <div style={{ fontSize: 10, color: '#8b949e', marginTop: 2 }}>Active Events</div>
+               </div>
+               <div style={{ background: '#161b22', padding: '10px', borderRadius: 8, border: '1px solid #30363d' }}>
+                 <div style={{ fontSize: 18, fontWeight: 800, color: TOKEN.accent }}>{Math.round(filteredEvents.length * 5.4)}%</div>
+                 <div style={{ fontSize: 10, color: '#8b949e', marginTop: 2 }}>Waste Reduced</div>
+               </div>
+             </div>
           </div>
         </div>
-
       </div>
 
       {/* ── Modals ── */}

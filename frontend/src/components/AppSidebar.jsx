@@ -53,11 +53,9 @@ export default function AppSidebar() {
         <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{
             width: 36, height: 36, borderRadius: 10,
-            background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-hover))',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 16px var(--color-primary-glow)',
           }}>
-            <Shield size={18} color="#000" strokeWidth={2.5} />
+            <img src="/leaf.png" alt="Thryve Leaf" style={{ width: 28, height: 28, objectFit: 'contain' }} />
           </div>
           <div>
             <div style={{ fontSize: 18, fontWeight: 900, color: 'var(--color-text)', letterSpacing: '0.02em', lineHeight: 1 }}>THRYVE</div>

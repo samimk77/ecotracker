@@ -1,4 +1,4 @@
-# 🌿 EcoTrack Backend
+# 🌿 Thryve Backend
 
 Full Node.js/Express backend for the EcoTrack civic-tech platform.
 
